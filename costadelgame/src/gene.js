@@ -9,7 +9,7 @@ BRANCH            = 7 // opval = addr
 MAX_INSTR         = 7
 
 var INSTRUCTION_PROBABILITIES = [
-                                 [ NOP, 5 ],
+                                 [ NOP, 2 ],
                                  [ FORWARD, 40 ],
                                  [ TURN, 30 ],
                                  [ BRANCH_IF_ENEMY, 5 ],
@@ -51,7 +51,7 @@ var Genome = function() {
 			if(opcode >= BRANCH_IF_ENEMY && opcode <= BRANCH)
 				opval = Math.floor(Math.random() * this.maxInstrCount);
 			else if(opcode == TURN)
-				opval = Math.floor(Math.random() * 8 - 4);
+				opval = Math.floor(Math.random() * 6 - 3);
 			this.instructions[i] = [opcode, opval];
 		}
 		return this;
@@ -101,7 +101,7 @@ var Creature = function(x, y, maxX, maxY) {
 				this.direction -= WEST;
 			if(this.direction < NORTH)
 				this.direction += WEST;
-			console.log("TURN");
+			console.log("TURN " + opval);
 			break;
 		}
 		case FORWARD:
