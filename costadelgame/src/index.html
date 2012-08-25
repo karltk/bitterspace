@@ -90,18 +90,23 @@
 				var boardx = 30;
 				var boardy = 20;
 				var board = new Board(boardx, boardy);
-				var creature = new Creature(0, 0, boardx, boardy);
+				var creatures = [];
+
+				for (var i = 0; i < 10; ++i)
+					creatures.push(new Creature(Math.floor(Math.random()*boardx), Math.floor(Math.random()*boardy), boardx, boardy));
 
 				var drawState = function()
 				{
 					board.clear(canvas);
-					board.drawCreature(canvas, creature);
+					for (creature in creatures)
+						board.drawCreature(canvas, creatures[creature]);
 					board.drawFood(canvas, 2, 2);
 				}
 
 				setInterval(function()
 					{
-						creature.step();
+						for (creature in creatures)
+							creatures[creature].step();
 						drawState();
 					}, 1000
 				);
