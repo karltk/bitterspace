@@ -1,9 +1,4 @@
 
-// 1 - NOP
-// 2 - FORWARD
-// 3 - TURN_LEFT
-// 4 - 
-
 NOP               = 1 // opval = 0
 FORWARD           = 2 // opval = 0
 TURN_LEFT         = 3 // opval = 0
@@ -14,19 +9,19 @@ BRANCH            = 7 // opval = addr
 MAX_INSTR         = 7
 
 var INSTRUCTION_PROBABILITIES = [
-                 [ NOP, 5 ],
-                 [ FORWARD, 40 ],
-                 [ TURN_LEFT, 30 ],
-                 [ BRANCH_IF_ENEMY, 5 ],
-                 [ BRANCH_IF_FRIEND, 5],
-                 [ BRANCH_IF_FOOD, 5 ],
-                 [ BRANCH, 5]
-];
+                                 [ NOP, 5 ],
+                                 [ FORWARD, 40 ],
+                                 [ TURN_LEFT, 30 ],
+                                 [ BRANCH_IF_ENEMY, 5 ],
+                                 [ BRANCH_IF_FRIEND, 5],
+                                 [ BRANCH_IF_FOOD, 5 ],
+                                 [ BRANCH, 5]
+                                 ];
 
 var Genome = function() {
 	this.maxInstrCount = 5;
 	this.instructions = new Array();
-	
+
 	function prepareProbabilities() {
 		var ls = new Array();
 		var cum = 0;
@@ -39,7 +34,7 @@ var Genome = function() {
 		ls.maxProbability = cum;
 		return ls;
 	} 
-	
+
 	function pickRandomOpCode(probs) {
 		var x = Math.floor(Math.random() * probs.maxProbability);
 		for(var i = probs.length - 1; i >= 0; i--)
@@ -87,66 +82,66 @@ var Creature = function(x, y, maxX, maxY) {
 		if(this.y > this.maxY)
 			this.maxY += this.maxY;
 	}
-	
+
 	this.step = function() {
 		var instr = this.genome.instructions[this.ip];
 		this.ip = (this.ip + 1) % (this.genome.instructions.length - 1);
 		var opcode = instr[0];
 		var opval = instr[1];
 		switch(opcode) {
-		  case NOP: {
-			  console.log("NOP");
-			  break;
-		  }
-		  case TURN_LEFT: {
-			  this.direction -= 1;
-			  if(this.direction == 0)
-				  this.direction = WEST;
-			  console.log("TURN_LEFT");
-			  break;
-		  }
-		  case FORWARD:
-			  switch(this.direction) {
-			  case WEST: { 
-				  this.x -= 1;
-				  break;
-			  }
-			  case EAST: {
-				  this.x += 1;
-				  break;
-			  }
-			  case NORTH: {
-				  this.y -= 1;
-				  break;
-			  }
-			  case SOUTH: { 
-				  this.y += 1;
-				  break;
-			  }
-			  default:
-				  console.log("WTF? " + this.direction + " is not a valid direction");
-			  }
-			  this._clampXY();
-			  console.log("FORWARD");
-			  break;
-		  case BRANCH_IF_ENEMY:
-			  	console.log("BRANCH_IF_ENEMY not implemented");
-			  	break;
-		  case BRANCH_IF_FRIEND:
-			  	console.log("BRANCH_IF_FRIEND not implemented");
-			  	break;
-		  case BRANCH_IF_FOOD:
-		  	console.log("BRANCH_IF_FOOD not implemented");
+		case NOP: {
+			console.log("NOP");
 			break;
-		  case BRANCH: 
-			  console.log("BRANCH");
-			  this.ip = opval;
-			  break;
-  		default:
-  			console.log("Unsupported instruction " + opcode);
-			  
 		}
-		
+		case TURN_LEFT: {
+			this.direction -= 1;
+			if(this.direction == 0)
+				this.direction = WEST;
+			console.log("TURN_LEFT");
+			break;
+		}
+		case FORWARD:
+			switch(this.direction) {
+			case WEST: { 
+				this.x -= 1;
+				break;
+			}
+			case EAST: {
+				this.x += 1;
+				break;
+			}
+			case NORTH: {
+				this.y -= 1;
+				break;
+			}
+			case SOUTH: { 
+				this.y += 1;
+				break;
+			}
+			default:
+				console.log("WTF? " + this.direction + " is not a valid direction");
+			}
+			this._clampXY();
+			console.log("FORWARD");
+			break;
+		case BRANCH_IF_ENEMY:
+			console.log("BRANCH_IF_ENEMY not implemented");
+			break;
+		case BRANCH_IF_FRIEND:
+			console.log("BRANCH_IF_FRIEND not implemented");
+			break;
+		case BRANCH_IF_FOOD:
+			console.log("BRANCH_IF_FOOD not implemented");
+			break;
+		case BRANCH: 
+			console.log("BRANCH");
+			this.ip = opval;
+			break;
+		default:
+			console.log("Unsupported instruction " + opcode);
+
+		}
+
 	}
 }
 
