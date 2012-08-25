@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv='Content-type: text/html; charset=utf-8'>
+		<meta charset='utf-8'>
+		<title></title>
+		<!--link rel='stylesheet' type='text/css' href='style.css'></link-->
+		<!--script type='text/javascript' src='script.js'></script-->
+		<style type='text/css'>
+			#board
+			{
+				/*border: 1px solid black;*/
+			}
+		</style>
+		<script type='text/javascript'>
+		</script>
+		<script type="text/javascript">
+			var Board = function(sizex, sizey)
+			{
+				var tilesize = 14;
+
+				var clear = function(canvas)
+				{
+					var ctx = canvas.getContext('2d');
+					canvas.width  = sizex * tilesize+1;
+					canvas.height = sizey * tilesize+1;
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					
+					ctx.strokeStyle = 'black';
+					ctx.strokeWidth = '1px';
+					for (var y = 0; y < sizey; ++y)
+					for (var x = 0; x < sizex; ++x)
+					{
+						ctx.strokeRect(x * tilesize+0.5, y * tilesize+0.5, tilesize, tilesize);
+					}
+				}
+
+				var drawCreature = function(canvas, x, y, color, orientation)
+				{
+					var ctx = canvas.getContext('2d');
+					var cx = tilesize * x + Math.floor(tilesize / 2);
+					var cy = tilesize * y + Math.floor(tilesize / 2);
+
+					//ctx.strokeStyle = color;
+					ctx.save();
+					ctx.translate(cx, cy);
+					ctx.rotate((1+orientation) * Math.PI/2);
+					ctx.fillStyle = color;
+					ctx.beginPath();
+					var f = Math.floor(tilesize / 3);
+					ctx.moveTo( f, -f);
+					ctx.lineTo( f,  f);
+					ctx.lineTo(-f,  0);
+					ctx.closePath();
+					//ctx.stroke();
+					ctx.fill();
+					ctx.restore();
+				}
+
+				var drawFood = function(canvas, x, y)
+				{
+					var ctx = canvas.getContext('2d');
+					var cx = tilesize * x + Math.floor(tilesize / 2);
+					var cy = tilesize * y + Math.floor(tilesize / 2);
+
+					ctx.save();
+					ctx.translate(cx, cy);
+					ctx.fillStyle = 'magenta';
+					ctx.beginPath();
+					var rad = Math.floor(tilesize / 3);
+					ctx.arc(0, 0, rad, 0, 2*Math.PI, true);
+					ctx.closePath();
+					ctx.fill();
+					ctx.restore();
+				}
+
+				return {
+					clear: clear,
+					drawCreature: drawCreature,
+					drawFood: drawFood,
+				};
+			};
+
+			onload = function()
+			{
+				var canvas = document.getElementById('board')
+				var board = new Board(30, 20);
+
+				setInterval(function() {
+					board.clear(canvas);
+					board.drawCreature(canvas, 0, 0, 'black', 0);
+					board.drawCreature(canvas, 1, 1, 'red'  , 1);
+					board.drawCreature(canvas, 2, 1, 'green', 2);
+					board.drawCreature(canvas, 1, 2, 'blue' , 3);
+					board.drawFood(canvas, 2, 2);
+				}, 1000);
+			}
+
+		</script>
+	</head>
+	<body>
+
+		<canvas id="board">
+		</canvas>
+
+	</body>
+</html>
