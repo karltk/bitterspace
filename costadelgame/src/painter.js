@@ -1,8 +1,10 @@
-var Painter = function(sizex, sizey)
+var Painter = function(canvas, board)
 {
 	var tilesize = 14;
+	var sizex = board.maxX;
+	var sizey = board.maxY;
 
-	var clear = function(canvas)
+	var clear = function()
 	{
 		var ctx = canvas.getContext('2d');
 		canvas.width  = sizex * tilesize+1;
@@ -18,7 +20,7 @@ var Painter = function(sizex, sizey)
 			}
 	}
 
-	var drawCreature = function(canvas, creature) //x, y, color, orientation)
+	var drawCreature = function(creature)
 	{
 		var x = creature.x;
 		var y = creature.y;
@@ -45,7 +47,7 @@ var Painter = function(sizex, sizey)
 		ctx.restore();
 	}
 
-	var drawFood = function(canvas, x, y)
+	var drawFood = function(x, y)
 	{
 		var ctx = canvas.getContext('2d');
 		var cx = tilesize * x + Math.floor(tilesize / 2);
@@ -62,10 +64,28 @@ var Painter = function(sizex, sizey)
 		ctx.restore();
 	}
 
+	var paint = function()
+	{
+		clear();
+		for (var y = 0; y < sizey; ++y)
+		for (var x = 0; x < sizex; ++x)
+		{
+			var entity = board.cells[y][x];
+			if (entity)
+			{
+				if (entity.type == "food")
+					drawFood(x, y);
+				else if (entity.type == "creature")
+					drawCreature(entity);
+			}
+		}
+	}
+
 	return {
 		clear: clear,
 		drawCreature: drawCreature,
 		drawFood: drawFood,
+		paint: paint,
 	};
 };
 

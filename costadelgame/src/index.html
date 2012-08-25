@@ -17,9 +17,14 @@
 			onload = function()
 			{
 				var canvas = document.getElementById('board');
-				var boardx = 30;
-				var boardy = 20;
-				var painter = new Painter(boardx, boardy);
+
+				var board    = new Board(30, 20);
+				var food     = new Food(10, 10, board);
+				var creature = new Creature(11, 10, board);
+
+				var painter = new Painter(canvas, board);
+
+				/*
 				var creatures = [];
 
 				for (var i = 0; i < 10; ++i)
@@ -33,22 +38,23 @@
 					painter.drawFood(canvas, 2, 2);
 				}
 
+				*/
 				setInterval(function()
 					{
-						for (creature in creatures)
-							creatures[creature].step();
-						drawState();
+						//for (creature in creatures)
+						//	creatures[creature].step();
+						//drawState();
+						creature.step();
+						painter.paint();
 					}, 1000
 				);
 
-				drawState();
+				painter.paint();
 			}
 		</script>
 	</head>
 	<body>
-
 		<canvas id="board">
 		</canvas>
-
 	</body>
 </html>
