@@ -92,10 +92,21 @@
 				var board = new Board(boardx, boardy);
 				var creature = new Creature(0, 0, boardx, boardy);
 
-				board.clear(canvas);
-				board.drawCreature(canvas, creature);
+				var drawState = function()
+				{
+					board.clear(canvas);
+					board.drawCreature(canvas, creature);
+					board.drawFood(canvas, 2, 2);
+				}
 
-				board.drawFood(canvas, 2, 2);
+				setInterval(function()
+					{
+						creature.step();
+						drawState();
+					}, 1000
+				);
+
+				drawState();
 			}
 
 		</script>
