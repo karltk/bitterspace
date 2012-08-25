@@ -5,15 +5,13 @@
 		<meta charset='utf-8'>
 		<title></title>
 		<!--link rel='stylesheet' type='text/css' href='style.css'></link-->
-		<!--script type='text/javascript' src='script.js'></script-->
+		<script type='text/javascript' src='gene.js'></script>
 		<style type='text/css'>
 			#board
 			{
 				/*border: 1px solid black;*/
 			}
 		</style>
-		<script type='text/javascript'>
-		</script>
 		<script type="text/javascript">
 			var Board = function(sizex, sizey)
 			{
@@ -35,8 +33,13 @@
 					}
 				}
 
-				var drawCreature = function(canvas, x, y, color, orientation)
+				var drawCreature = function(canvas, creature) //x, y, color, orientation)
 				{
+					var x = creature.x;
+					var y = creature.y;
+					var color = 'black';
+					var orientation = creature.direction;
+
 					var ctx = canvas.getContext('2d');
 					var cx = tilesize * x + Math.floor(tilesize / 2);
 					var cy = tilesize * y + Math.floor(tilesize / 2);
@@ -44,7 +47,7 @@
 					//ctx.strokeStyle = color;
 					ctx.save();
 					ctx.translate(cx, cy);
-					ctx.rotate((1+orientation) * Math.PI/2);
+					ctx.rotate(orientation * Math.PI/2);
 					ctx.fillStyle = color;
 					ctx.beginPath();
 					var f = Math.floor(tilesize / 3);
@@ -83,17 +86,16 @@
 
 			onload = function()
 			{
-				var canvas = document.getElementById('board')
-				var board = new Board(30, 20);
+				var canvas = document.getElementById('board');
+				var boardx = 30;
+				var boardy = 20;
+				var board = new Board(boardx, boardy);
+				var creature = new Creature(0, 0, boardx, boardy);
 
-				setInterval(function() {
-					board.clear(canvas);
-					board.drawCreature(canvas, 0, 0, 'black', 0);
-					board.drawCreature(canvas, 1, 1, 'red'  , 1);
-					board.drawCreature(canvas, 2, 1, 'green', 2);
-					board.drawCreature(canvas, 1, 2, 'blue' , 3);
-					board.drawFood(canvas, 2, 2);
-				}, 1000);
+				board.clear(canvas);
+				board.drawCreature(canvas, creature);
+
+				board.drawFood(canvas, 2, 2);
 			}
 
 		</script>
