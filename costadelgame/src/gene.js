@@ -75,11 +75,11 @@ var Creature = function(x, y, maxX, maxY) {
 	this._clampXY = function() {
 		if(this.x < 0)
 			this.x += this.maxX;
-		if(this.x > this.maxX)
+		if(this.x >= this.maxX)
 			this.x -= this.maxX;
 		if(this.y < 0)
 			this.y += this.maxY;
-		if(this.y > this.maxY)
+		if(this.y >= this.maxY)
 			this.maxY += this.maxY;
 	}
 
