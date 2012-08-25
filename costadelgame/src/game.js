@@ -168,6 +168,7 @@ var Creature = function(x, y, board, team) {
 			break;
 		}
 		case FORWARD: {
+			board.placeEntity(this.x, this.y, null);
 			switch(this.direction) {
 			case WEST: { 
 				this.x -= 1;
@@ -189,6 +190,7 @@ var Creature = function(x, y, board, team) {
 				console.log("WTF? " + this.direction + " is not a valid direction");
 			}
 			this._clampXY();
+			board.placeEntity(this.x, this.y, this);
 			console.log("FORWARD");
 			break;
 		}
