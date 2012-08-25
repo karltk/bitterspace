@@ -13,13 +13,45 @@ BRANCH_IF_FOOD    = 6 // opval = addr
 BRANCH            = 7 // opval = addr
 MAX_INSTR         = 7
 
+var INSTRUCTION_PROBABILITIES = [
+                 [ NOP, 5 ],
+                 [ FORWARD, 40 ],
+                 [ TURN_LEFT, 30 ],
+                 [ BRANCH_IF_ENEMY, 5 ],
+                 [ BRANCH_IF_FRIEND, 5],
+                 [ BRANCH_IF_FOOD, 5 ],
+                 [ BRANCH, 5]
+];
+
 var Genome = function() {
 	this.maxInstrCount = 5;
 	this.instructions = new Array();
 	
+	function prepareProbabilities() {
+		var ls = new Array();
+		var cum = 0;
+		for(var i = 0; i < INSTRUCTION_PROBABILITIES.length; i++) {
+			var opcode = INSTRUCTION_PROBABILITIES[i][0];
+			var prob = INSTRUCTION_PROBABILITIES[i][1];
+			ls[i] = { "probabilityCutoff" : cum, "opcode" : opcode };
+			cum += prob;
+		}
+		ls.maxProbability = cum;
+		return ls;
+	} 
+	
+	function pickRandomOpCode(probs) {
+		var x = Math.floor(Math.random() * probs.maxProbability);
+		for(var i = probs.length - 1; i >= 0; i--)
+			if(x >= probs[i].probabilityCutoff)
+				return probs[i].opcode;
+		throw "Bogus probability " + x + " out of " + probs.maxProbability;
+	}
 	this.populateAtRandom = function() {
+		var probs = prepareProbabilities();
+		console.log(probs);
 		for(var i = 0; i < this.maxInstrCount; i++) {
-			var opcode = Math.floor(Math.random() * MAX_INSTR + 1);
+			var opcode = pickRandomOpCode(probs);;
 			var opval = 0;
 			if(opcode >= BRANCH_IF_ENEMY && opcode <= BRANCH)
 				opval = Math.floor(Math.random() * this.maxInstrCount);
