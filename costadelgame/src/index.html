@@ -3,8 +3,7 @@
 	<head>
 		<meta http-equiv='Content-type: text/html; charset=utf-8'>
 		<meta charset='utf-8'>
-		<title></title>
-		<!--link rel='stylesheet' type='text/css' href='style.css'></link-->
+		<title>Bitter Space</title>
 		<script type='text/javascript' src='game.js'></script>
 		<script type='text/javascript' src='painter.js'></script>
 		<style type='text/css'>
@@ -24,29 +23,11 @@
 
 				var painter = new Painter(canvas, board);
 
-				/*
-				var creatures = [];
-
-				for (var i = 0; i < 10; ++i)
-					creatures.push(new Creature(Math.floor(Math.random()*boardx), Math.floor(Math.random()*boardy), boardx, boardy, Math.floor(Math.random() * 2)));
-
-				var drawState = function()
-				{
-					painter.clear(canvas);
-					for (creature in creatures)
-						painter.drawCreature(canvas, creatures[creature]);
-					painter.drawFood(canvas, 2, 2);
-				}
-
-				*/
 				setInterval(function()
 					{
-						//for (creature in creatures)
-						//	creatures[creature].step();
-						//drawState();
 						creature.step();
 						painter.paint();
-					}, 1000
+					}, 100
 				);
 
 				painter.paint();
