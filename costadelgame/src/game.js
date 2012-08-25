@@ -10,8 +10,8 @@ MAX_INSTR         = 7
 
 var INSTRUCTION_PROBABILITIES = [
                                  [ NOP, 2 ],
-                                 [ FORWARD, 1 ],
-                                 [ TURN, 1 ],
+                                 [ FORWARD, 40 ],
+                                 [ TURN, 40 ],
                                  [ BRANCH_IF_ENEMY, 5 ],
                                  [ BRANCH_IF_FRIEND, 5],
                                  [ BRANCH_IF_FOOD, 5 ],
