@@ -10,8 +10,8 @@ MAX_INSTR         = 7
 
 var INSTRUCTION_PROBABILITIES = [
                                  [ NOP, 2 ],
-                                 [ FORWARD, 40 ],
-                                 [ TURN, 30 ],
+                                 [ FORWARD, 1 ],
+                                 [ TURN, 1 ],
                                  [ BRANCH_IF_ENEMY, 5 ],
                                  [ BRANCH_IF_FRIEND, 5],
                                  [ BRANCH_IF_FOOD, 5 ],
@@ -91,6 +91,17 @@ var Board = function(maxX, maxY) {
 					return this.cells[y][ax];
 				}
 			}
+		case NORTH:
+		case SOUTH:
+			var delta = direction == NORTH ? -1 : 1; 
+			for(var dy = 1; dy < this.maxY; dy++) {
+				var ay = (dy * delta + y + this.maxY) % this.maxY;
+				if(this.cells[ay][x]) {
+					return this.cells[ay][x];
+				}
+			}
+		default:
+			throw new "!!! Weird direction " + direction;
 		}
 		return null;
 	}
@@ -108,14 +119,23 @@ var Creature = function(x, y, board, team) {
 	this.type = "creature";
 	this.x = x || 0;
 	this.y = y || 0;
-	this.direction = WEST;
+	this.direction = NORTH;
 	this.generation = 0;
 	this.genome = new Genome().populateAtRandom(); 
 	this.ip = 0;
 	this.team = team || 0;
 
 	board.placeEntity(x, y, this);
-	
+
+	this._lookFor = function(check, log) {
+		var spotted = board.observe(this.x, this.y, this.direction);
+		var found = false;
+		if(spotted && check(spotted.type, spotted.team))
+			found = true;
+		console.log(log + " " + (found ? "taken" : "not taken"));
+		return found;
+	}
+
 	// FIXME should not be on "this"
 	this._clampXY = function() {
 		if(this.x < 0)
@@ -147,7 +167,7 @@ var Creature = function(x, y, board, team) {
 			console.log("TURN " + opval);
 			break;
 		}
-		case FORWARD:
+		case FORWARD: {
 			switch(this.direction) {
 			case WEST: { 
 				this.x -= 1;
@@ -171,23 +191,20 @@ var Creature = function(x, y, board, team) {
 			this._clampXY();
 			console.log("FORWARD");
 			break;
+		}
 		case BRANCH_IF_ENEMY: {
-			var spotted = board.observe(this.x, this.y, this.direction);
-			var oldip = this.ip;
-			if(spotted && spotted.type == "creature" && spotted.team != this.team) 
+			if(this._lookFor(function(type, team) { return type == "creature" && team == this.team }, "BRANCH_IF_ENEMY"))
 				this.ip = opval;
-			console.log("BRANCH_IF_ENEMY " + (oldip != this.ip ? "taken" : "not taken"));
 			break;
 		}
-		case BRANCH_IF_FRIEND:
-			console.log("BRANCH_IF_FRIEND not implemented");
-			break;
-		case BRANCH_IF_FOOD: {
-			var spotted = board.observe(this.x, this.y, this.direction);
-			var oldip = this.ip;
-			if(spotted && spotted.type == "food" && spotted.team != this.team) 
+		case BRANCH_IF_FRIEND: {
+			if(this._lookFor(function(type, team) { return type == "creature" && team == this.team }, "BRANCH_IF_FRIEND"))
 				this.ip = opval;
-			console.log("BRANCH_IF_FOOD " + (oldip != this.ip ? "taken" : "not taken"));
+			break;
+		}
+		case BRANCH_IF_FOOD: {
+			if(this._lookFor(function(type, team) { return type == "food" }, "BRANCH_IF_FOOD"))
+				this.ip = opval;
 			break;
 		}
 		case BRANCH: 
@@ -204,7 +221,7 @@ var Creature = function(x, y, board, team) {
 
 var b = new Board(100, 100);
 var f = new Food(10, 10, b);
-var c = new Creature(11, 10, b);
+var c = new Creature(10, 11, b);
 console.log(c)
 for(var i = 0; i < 10; i++)
 	c.step();
