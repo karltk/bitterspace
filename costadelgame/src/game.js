@@ -83,7 +83,7 @@ var Board = function(maxX, maxY) {
 	this.observe = function(x, y, direction) {
 		switch(direction) {
 		case WEST:
-		case EAST:
+		case EAST: {
 			var delta = direction == WEST ? -1 : 1; 
 			for(var dx = 1; dx < this.maxX; dx++) {
 				var ax = (dx * delta + x + this.maxX) % this.maxX;
@@ -91,8 +91,10 @@ var Board = function(maxX, maxY) {
 					return this.cells[y][ax];
 				}
 			}
+			break;
+		}
 		case NORTH:
-		case SOUTH:
+		case SOUTH: {
 			var delta = direction == NORTH ? -1 : 1; 
 			for(var dy = 1; dy < this.maxY; dy++) {
 				var ay = (dy * delta + y + this.maxY) % this.maxY;
@@ -100,8 +102,10 @@ var Board = function(maxX, maxY) {
 					return this.cells[ay][x];
 				}
 			}
+			break;
+		}
 		default:
-			throw new "!!! Weird direction " + direction;
+			throw "!!! Weird direction " + direction;
 		}
 		return null;
 	}
