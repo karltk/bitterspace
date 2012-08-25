@@ -1,7 +1,7 @@
 
 NOP               = 1 // opval = 0
 FORWARD           = 2 // opval = 0
-TURN_LEFT         = 3 // opval = 0
+TURN              = 3 // opval = number of 90-degree clockwise steps
 BRANCH_IF_ENEMY   = 4 // opval = addr
 BRANCH_IF_FRIEND  = 5 // opval = addr
 BRANCH_IF_FOOD    = 6 // opval = addr
@@ -11,7 +11,7 @@ MAX_INSTR         = 7
 var INSTRUCTION_PROBABILITIES = [
                                  [ NOP, 5 ],
                                  [ FORWARD, 40 ],
-                                 [ TURN_LEFT, 30 ],
+                                 [ TURN, 30 ],
                                  [ BRANCH_IF_ENEMY, 5 ],
                                  [ BRANCH_IF_FRIEND, 5],
                                  [ BRANCH_IF_FOOD, 5 ],
@@ -50,6 +50,8 @@ var Genome = function() {
 			var opval = 0;
 			if(opcode >= BRANCH_IF_ENEMY && opcode <= BRANCH)
 				opval = Math.floor(Math.random() * this.maxInstrCount);
+			else if(opcode == TURN)
+				opval = Math.floor(Math.random() * 8 - 4);
 			this.instructions[i] = [opcode, opval];
 		}
 		return this;
@@ -93,11 +95,13 @@ var Creature = function(x, y, maxX, maxY) {
 			console.log("NOP");
 			break;
 		}
-		case TURN_LEFT: {
-			this.direction -= 1;
-			if(this.direction == 0)
-				this.direction = WEST;
-			console.log("TURN_LEFT");
+		case TURN: {
+			this.direction += opval;
+			if(this.direction > WEST)
+				this.direction -= WEST;
+			if(this.direction < NORTH)
+				this.direction += WEST;
+			console.log("TURN");
 			break;
 		}
 		case FORWARD:
