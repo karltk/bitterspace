@@ -22,7 +22,7 @@ var Genome = function() {
 	this.maxInstrCount = 5;
 	this.instructions = new Array();
 
-	function prepareProbabilities() {
+	var prepareProbabilities = function() {
 		var ls = new Array();
 		var cum = 0;
 		for(var i = 0; i < INSTRUCTION_PROBABILITIES.length; i++) {
@@ -35,13 +35,14 @@ var Genome = function() {
 		return ls;
 	} 
 
-	function pickRandomOpCode(probs) {
+	var pickRandomOpCode = function(probs) {
 		var x = Math.floor(Math.random() * probs.maxProbability);
 		for(var i = probs.length - 1; i >= 0; i--)
 			if(x >= probs[i].probabilityCutoff)
 				return probs[i].opcode;
 		throw "Bogus probability " + x + " out of " + probs.maxProbability;
 	}
+	
 	this.populateAtRandom = function() {
 		var probs = prepareProbabilities();
 		console.log(probs);
@@ -63,27 +64,68 @@ EAST = 2;
 SOUTH = 3;
 WEST = 4;
 
-var Creature = function(x, y, maxX, maxY, team) {
+var Board = function(maxX, maxY) {
+	this.maxX = maxX;
+	this.maxY = maxY;
+	this.cells = new Array();
+	
+	for(var y = 0; y < maxY; y++) {
+		this.cells[y] = new Array();
+		for(var x = 0; x < maxX; x++) {
+			this.cells[y][x] = null;
+		}
+	}
+	
+	this.placeEntity = function(x,y, entity) {
+		this.cells[y][x] = entity;
+	}
+	
+	this.observe = function(x, y, direction) {
+		switch(direction) {
+		case WEST:
+		case EAST:
+			var delta = direction == WEST ? -1 : 1; 
+			for(var dx = 1; dx < this.maxX; dx++) {
+				var ax = (dx * delta + x + this.maxX) % this.maxX;
+				if(this.cells[y][ax]) {
+					return this.cells[y][ax];
+				}
+			}
+		}
+		return null;
+	}
+}
+
+var Food = function(x, y, board) {
+	this.type = "food";
+	this.x = x;
+	this.y = y;
+	
+	board.placeEntity(x, y, this);
+}
+
+var Creature = function(x, y, board, team) {
+	this.type = "creature";
 	this.x = x || 0;
 	this.y = y || 0;
-	this.maxX = maxX || 100;
-	this.maxY = maxY || 100;
 	this.direction = WEST;
 	this.generation = 0;
 	this.genome = new Genome().populateAtRandom(); 
 	this.ip = 0;
 	this.team = team || 0;
 
+	board.placeEntity(x, y, this);
+	
 	// FIXME should not be on "this"
 	this._clampXY = function() {
 		if(this.x < 0)
-			this.x += this.maxX;
-		if(this.x >= this.maxX)
-			this.x -= this.maxX;
+			this.x += board.maxX;
+		if(this.x >= board.maxX)
+			this.x -= board.maxX;
 		if(this.y < 0)
-			this.y += this.maxY;
-		if(this.y >= this.maxY)
-			this.maxY += this.maxY;
+			this.y += board.maxY;
+		if(this.y >= board.maxY)
+			this.y += board.maxY;
 	}
 
 	this.step = function() {
@@ -129,15 +171,25 @@ var Creature = function(x, y, maxX, maxY, team) {
 			this._clampXY();
 			console.log("FORWARD");
 			break;
-		case BRANCH_IF_ENEMY:
-			console.log("BRANCH_IF_ENEMY not implemented");
+		case BRANCH_IF_ENEMY: {
+			var spotted = board.observe(this.x, this.y, this.direction);
+			var oldip = this.ip;
+			if(spotted && spotted.type == "creature" && spotted.team != this.team) 
+				this.ip = opval;
+			console.log("BRANCH_IF_ENEMY " + (oldip != this.ip ? "taken" : "not taken"));
 			break;
+		}
 		case BRANCH_IF_FRIEND:
 			console.log("BRANCH_IF_FRIEND not implemented");
 			break;
-		case BRANCH_IF_FOOD:
-			console.log("BRANCH_IF_FOOD not implemented");
+		case BRANCH_IF_FOOD: {
+			var spotted = board.observe(this.x, this.y, this.direction);
+			var oldip = this.ip;
+			if(spotted && spotted.type == "food" && spotted.team != this.team) 
+				this.ip = opval;
+			console.log("BRANCH_IF_FOOD " + (oldip != this.ip ? "taken" : "not taken"));
 			break;
+		}
 		case BRANCH: 
 			console.log("BRANCH");
 			this.ip = opval;
@@ -150,7 +202,9 @@ var Creature = function(x, y, maxX, maxY, team) {
 	}
 }
 
-var c = new Creature();
+var b = new Board(100, 100);
+var f = new Food(10, 10, b);
+var c = new Creature(11, 10, b);
 console.log(c)
 for(var i = 0; i < 10; i++)
 	c.step();
