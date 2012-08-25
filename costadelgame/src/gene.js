@@ -63,7 +63,7 @@ EAST = 2;
 SOUTH = 3;
 WEST = 4;
 
-var Creature = function(x, y, maxX, maxY) {
+var Creature = function(x, y, maxX, maxY, team) {
 	this.x = x || 0;
 	this.y = y || 0;
 	this.maxX = maxX || 100;
@@ -72,6 +72,7 @@ var Creature = function(x, y, maxX, maxY) {
 	this.generation = 0;
 	this.genome = new Genome().populateAtRandom(); 
 	this.ip = 0;
+	this.team = team || 0;
 
 	// FIXME should not be on "this"
 	this._clampXY = function() {

@@ -24,7 +24,7 @@
 					canvas.height = sizey * tilesize+1;
 					ctx.clearRect(0, 0, canvas.width, canvas.height);
 					
-					ctx.strokeStyle = 'black';
+					ctx.strokeStyle = '#ccc';
 					ctx.strokeWidth = '1px';
 					for (var y = 0; y < sizey; ++y)
 					for (var x = 0; x < sizex; ++x)
@@ -37,7 +37,7 @@
 				{
 					var x = creature.x;
 					var y = creature.y;
-					var color = 'black';
+					var color = creature.team == 0 ? '#DEA863' : '#4E6A82';
 					var orientation = creature.direction;
 
 					var ctx = canvas.getContext('2d');
@@ -68,7 +68,7 @@
 
 					ctx.save();
 					ctx.translate(cx, cy);
-					ctx.fillStyle = 'magenta';
+					ctx.fillStyle = '#C25C31';
 					ctx.beginPath();
 					var rad = Math.floor(tilesize / 3);
 					ctx.arc(0, 0, rad, 0, 2*Math.PI, true);
@@ -93,7 +93,7 @@
 				var creatures = [];
 
 				for (var i = 0; i < 10; ++i)
-					creatures.push(new Creature(Math.floor(Math.random()*boardx), Math.floor(Math.random()*boardy), boardx, boardy));
+					creatures.push(new Creature(Math.floor(Math.random()*boardx), Math.floor(Math.random()*boardy), boardx, boardy, Math.floor(Math.random() * 2)));
 
 				var drawState = function()
 				{
