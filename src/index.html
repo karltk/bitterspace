@@ -21,7 +21,7 @@
 				var canvas = document.getElementById('board');
 
 				var simulator = new Simulator(50, 100, 30, 20);
-				var MAX_GENERATIONS = 20; 
+				var MAX_GENERATIONS = 20;
 				for(var g = 0; g < MAX_GENERATIONS; g++) {
 					simulator.simulateAndRankOneGeneration(100);
 				}
@@ -48,15 +48,11 @@
 
 				var painter = new Painter(canvas, board);
 				
-				var doMutation = false;
-				
 				setInterval(function()
 					{
-						if (doMutation == true) {
-							creature.genome.mutateGenome();
-							doMutation = false;
-						}
+						$('#genome li:eq('+creature.ip+')').css("background", "");
 						creature.step();
+						$('#genome li:eq('+creature.ip+')').css("background", "#aaa");
 						painter.paint();
 					}, 100
 				);
