@@ -6,11 +6,16 @@
 		<title>Bitter Space</title>
 		<script type='text/javascript' src='game.js'></script>
 		<script type='text/javascript' src='painter.js'></script>
+		<link href="css/bootstrap.css" rel="stylesheet">
 		<style type='text/css'>
 			#board, #genome
 			{
 				/*border: 1px solid black;*/
 				display: inline-block;
+			}
+			#titletag
+			{
+				margin-top: 60px;
 			}
 		</style>
 		<script type="text/javascript" src="jquery.js"></script>
@@ -158,59 +163,169 @@
 		</script>
 	</head>
 	<body>
-		<canvas id="board">
-		</canvas>
-		<div id="genome"></div>
-		<div>Respawn counter: <span id="respawnCounter"></span></div>
-		<div>Step counter: <span id="stepcounter"></span></div>
-		<div>Rank: <span id="rank"></span></div>
-		<div>Generation: <span id="generation"></span></div>
-		<div>Enemy hits: <span id="enemyhits"></span></div>
-		<h3>Simulation</h3>
-		<table>
-			<tr>
-				<td><label for="generations">Generations:</label>
-				<td><input id="generations" value="10"></input>
-			</tr>
+<<<<<<< local
+		
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</a>
+					<a class="brand" href="#">Bitter space</a>
+					<div class="nav-collapse collapse">
+						<ul class="nav">
+							<li class="active"><a href="#">Canvas</a></li>
+							<li><a href="#simuation">Simulation Settings</a></li>
+							<li><a href="#mutation">Mutation Settings</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+			
+		<div class="container">
+			<h1 id="titletag">Bitter Space</h1>
+			<canvas id="board">
+			</canvas>
+			<div id="genome"></div>
+			<div>Respawn counter: <span id="respawnCounter"></span></div>
+			<div>Step counter: <span id="stepcounter"></span></div>
+			<div>Rank: <span id="rank"></span></div>
+			<div>Generation: <span id="generation"></span></div>
+			<div>Enemy hits: <span id="enemyhits"></span></div>
+			
+			<br />
+			<form class="form-horizontal">
+				<legend>Simulation Settings</legend>
+				
+				<div class="control-group">
+					<label class="control-label" for="generations">Generations</label>
+					<div class="controls">
+						<input type="text" id="generations" value="10"></input>
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label" for="steps">Steps per generation</label>
+					<div class="controls">
+						<input type="text" id="steps" value="20"></input>
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label" for="stepsUntilRespawn">Steps until respawn</label>
+					<div class="controls">
+						<input type="text" id="stepsUntilRespawn" value="35"></input>
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label" for="foodCount">foodCount</label>
+					<div class="controls">
+						<input type="text" id="foodCount" value="50"></input>
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label" for="enemyCount">enemyCount</label>
+					<div class="controls">
+						<input type="text" id="enemyCount" value="30"></input>
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label" for="creatureCount">creatureCount</label>
+					<div class="controls">
+						<input type="text" id="creatureCount" value="100"></input>
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label" for="boardWidth">boardWidth</label>
+					<div class="controls">
+						<input type="text" id="boardWidth" value="30"></input>
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label" for="boardHeight">boardHeight</label>
+					<div class="controls">
+						<input type="text" id="boardHeight" value="20"></input>
+					</div>
+				</div>
+				
+				<div class="control-group">
+				    <div class="controls">
+						<label class="checkbox">
+							<input id="newboard" type="checkbox"> New board per generation
+						</label>
+						<br />
+						<button type="button" class="btn btn-primary" onclick="runSimulation(readConfig())">Run simulation</button>
+					</div>
+				</div>
+				
+				<!--
+				<label class="checkbox" for="newboard">
+					<input id="newboard" type="checkbox" value="">
+					New board per generation
+				</label>
+				-->
+				
+				
+			</form>
+				<!--
+					<td><label for="generations">Generations</label>
+					<td><input type="text" id="generations" value="10"></input>
+				</tr>
 
-			<tr>
-				<td><label for="steps">Steps per generation:</label>
-				<td><input id="steps" value="20"></input>
-			</tr>
+				<tr>
+					<td><label for="steps">Steps per generation  </label>
+					<td><input type="text" id="steps" value="20"></input>
+				</tr>
 
-			<tr>
-				<td><label for="steps">Steps until respawn:</label>
-				<td><input id="stepsUntilRespawn" value="35"></input>
-			</tr>
+				<tr>
+					<td><label for="steps">Steps until respawn</label>
+					<td><input type="text" id="stepsUntilRespawn" value="35"></input>
+				</tr>
 
-			<tr>
-				<td><label for="foodCount">foodCount</label>
-				<td><input id="foodCount" value="50"></input>
-			</tr>
+				<tr>
+					<td><label for="foodCount">foodCount</label>
+					<td><input type="text" id="foodCount" value="50"></input>
+				</tr>
 
-			<tr>
-				<td><label for="enemyCount">enemyCount</label>
-				<td><input id="enemyCount" value="30"></input>
-			</tr>
+				<tr>
+					<td><label for="enemyCount">enemyCount</label>
+					<td><input type="text" id="enemyCount" value="30"></input>
+				</tr>
 
-			<tr>
-				<td><label for="creatureCount">creatureCount</label>
-				<td><input id="creatureCount" value="100"></input>
-			</tr>
+				<tr>
+					<td><label for="creatureCount">creatureCount</label>
+					<td><input type="text" id="creatureCount" value="100"></input>
+				</tr>
 
-			<tr>
-				<td><label for="boardWidth">boardWidth</label>
-				<td><input id="boardWidth" value="30"></input>
-			</tr>
+				<tr>
+					<td><label for="boardWidth">boardWidth</label>
+					<td><input type="text" id="boardWidth" value="30"></input>
+				</tr>
 
-			<tr>
-				<td><label for="boardHeight">boardHeight per generation:</label>
-				<td><input id="boardHeight" value="20"></input>
-			</tr>
-		</table>
-
-		<input id="newboard" type="checkbox"></input>
-		<label for="newboard">New board per generation</label><br>
-		<button onclick="runSimulation(readConfig())">Run simulation</button>
+				<tr>
+					<td><label for="boardHeight">boardHeight</label>
+					<td><input type="text" id="boardHeight" value="20"></input>
+				</tr>
+			</table>
+			
+			<label class="checkbox" for="newboard">
+				<input id="newboard" type="checkbox" value="">
+				New board per generation
+			</label>
+			
+			<button class="btn btn-primary" onclick="runSimulation(readConfig())">Run simulation</button>
+			<br />
+			<br />
+			-->
+			<br />
+		</div>
 	</body>
 </html>
