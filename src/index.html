@@ -62,6 +62,7 @@
 						creature.step();
 						$('#genome li:eq('+creature.ip+')').css("background", "#aaa");
 						$('#rank').text(creature.rank);
+						$('#enemyhits').text(creature.enemyhits);
 						painter.paint();
 					}, 100
 				);
@@ -92,6 +93,7 @@
 		</canvas>
 		<div id="genome"></div>
 		<div>Rank: <span id="rank"></span></div>
+		<div>Enemy hits: <span id="enemyhits"></span></div>
 		<button onclick="runSimulation(readConfig())">Run simulation</button>
 		<h3>Simulator parameters:</h3>
 		<form>

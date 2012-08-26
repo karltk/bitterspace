@@ -369,6 +369,7 @@ var Creature = function(x, y, team) {
 	this.ip = 0;
 	this.team = team || 0;
 	this.rank = 0;
+	this.enemyhits = 0;
 	var board = null;
 
 	this.clone = function() {
@@ -382,6 +383,7 @@ var Creature = function(x, y, team) {
 		clone.ip = this.ip;
 		clone.team = this.team;
 		clone.rank = this.rank;
+		clone.enemyhits = this.enemyhits;
 		return clone;
 	}
 	
@@ -413,6 +415,7 @@ var Creature = function(x, y, team) {
 
 	this.reset = function() {
 		this.rank = 0;
+		this.enemyhits = 0;
 		this.x = x;
 		this.y = y;
 		this.ip = 0;
@@ -469,6 +472,7 @@ var Creature = function(x, y, team) {
 				board.placeEntity(this.x, this.y, this);
 			} else if(tenant && tenant.type === "creature" && tenant.team != this.team) {
 				this.rank = 0;
+				this.enemyhits++;
 				this.x = oldX;
 				this.y = oldY;
 			}
