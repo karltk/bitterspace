@@ -20,10 +20,11 @@ var Painter = function(canvas, board)
 			}
 	}
 
-	var drawCreature = function(creature)
+	var drawCreature = function(x, y, creature)
 	{
-		var x = creature.x;
-		var y = creature.y;
+		if (x != creature.x || y != creature.y)
+			alert( "x != creature.x || y != creature.y");
+
 		var color = creature.team == 0 ? '#DEA863' : '#4E6A82';
 		var orientation = creature.direction;
 
@@ -76,7 +77,7 @@ var Painter = function(canvas, board)
 				if (entity.type == "food")
 					drawFood(x, y);
 				else if (entity.type == "creature")
-					drawCreature(entity);
+					drawCreature(x, y, entity);
 			}
 		}
 	}
