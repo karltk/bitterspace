@@ -95,18 +95,20 @@
 		<div>Rank: <span id="rank"></span></div>
 		<div>Enemy hits: <span id="enemyhits"></span></div>
 		<button onclick="runSimulation(readConfig())">Run simulation</button>
-		<h3>Simulator parameters:</h3>
-		<form>
-			<label for="generations">Generations:</label>
-			<input id="generations" value="10"></input>
-			<br>
+		<h3>Simulator parameters</h3>
+		<table>
+			<tr>
+				<td><label for="generations">Generations:</label>
+				<td><input id="generations" value="10"></input>
+			</tr>
 
-			<label for="steps">Steps per generation:</label>
-			<input id="steps" value="20"></input>
-			<br>
+			<tr>
+				<td><label for="steps">Steps per generation:</label>
+				<td><input id="steps" value="20"></input>
+			</tr>
+		</table>
 
-			<label for="newboard">New board per generation</label>
-			<input id="newboard" type="checkbox"></input>
-		</form>
+		<input id="newboard" type="checkbox"></input>
+		<label for="newboard">New board per generation</label>
 	</body>
 </html>
