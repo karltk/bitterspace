@@ -66,11 +66,18 @@
 				});
 				
 				function onNew(msg) {
-					replaceCreatureWithNewGenome(msg.genome);
+					board.placeEntity(creature.x, creature.y, null);
+					creature = simulator.createRandomCreature();
+					creature.genome.fromJson(msg.genome);
+					creature.reset();
+					creature.placeOnBoard(board);
+					genomePainter.paint();
+
+					rememberAndDisplayGenome(creature.genome);
 					$("#generation").text(msg.generation);
+
 					timeUntilNew = stepsUntilRespawn;
 					shouldAskForNew = true;
-					genomePainter.paint();
 				}
 				
 				function askForNew() {
@@ -78,18 +85,7 @@
 					worker.postMessage({ cmd : "new", generations: 10, stepsPerGeneration: 100 });
 					shouldAskForNew = false;
 				}
-
-				function replaceCreatureWithNewGenome(genome) {
-					board.placeEntity(creature.x, creature.y, null);
-
-					creature = simulator.createRandomCreature();
-					creature.genome.fromJson(genome);
-					creature.reset();
-					creature.placeOnBoard(board);
-					displayGenome(creature.genome);
-				}
 								
-				var canvas = document.getElementById('board');
 
 				function startSimulator() {
 					console.log("Requesting new simulator");
@@ -99,14 +95,10 @@
 				creature.reset();
 				creature.placeOnBoard(board);
 
-				function displayGenome(genome) {
-					history.push(genome.instructions);
-					$("#genome").html(genomeToHtml(genome));
-				}
-				
-				function genomeToHtml(genome)
-				{
+				function rememberAndDisplayGenome(genome) {
 					var instructions = genome.instructions;
+					
+					history.push(instructions);
 					
 					var html = '<ol start=0>';
 					var ip = 0;
@@ -116,14 +108,17 @@
 						ip++;
 					});
 					html += "</ol>";
-					return html;
+
+					$("#genome").html(html);
 				}
 
 				startSimulator();
 				askForNew();
 				
-				var painter = new Painter(canvas, board);
-				var genomePainter = new GenomePainter(document.getElementById('history'), history);
+				var boardCanvas = document.getElementById('board');
+				var genomeCanvas = document.getElementById('history');
+				var painter = new Painter(boardCanvas, board);
+				var genomePainter = new GenomePainter(genomeCanvas, history);
 				
 				updateFunction = setInterval(function()
 					{
