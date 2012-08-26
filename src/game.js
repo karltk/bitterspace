@@ -169,6 +169,10 @@ var Board = function(maxX, maxY) {
 		this.cells[y][x] = entity;
 	}
 
+	this.getEntity = function(x, y) {
+		return this.cells[y][x];
+	}
+	
 	this.observe = function(x, y, direction) {
 		switch(direction) {
 		case WEST:
@@ -217,6 +221,7 @@ var Creature = function(x, y, board, team) {
 	this.genome = new Genome().populateAtRandom(); 
 	this.ip = 0;
 	this.team = team || 0;
+	this.rank = 0;
 
 	board.placeEntity(x, y, this);
 
@@ -230,7 +235,7 @@ var Creature = function(x, y, board, team) {
 	}
 
 	// FIXME should not be on "this"
-	this._clampXY = function() {
+	this._wrapAroundXY = function() {
 		if(this.x < 0)
 			this.x += board.maxX;
 		if(this.x >= board.maxX)
@@ -282,7 +287,11 @@ var Creature = function(x, y, board, team) {
 			default:
 				console.log("WTF? " + this.direction + " is not a valid direction");
 			}
-			this._clampXY();
+			this._wrapAroundXY();
+			var tenant = board.getEntity(this.x, this.y);
+			if(tenant && tenant.type === "food") {
+				this.rank += 1;
+			} 
 			board.placeEntity(this.x, this.y, this);
 			console.log("FORWARD");
 			break;
@@ -314,16 +323,63 @@ var Creature = function(x, y, board, team) {
 	}
 }
 
-var b = new Board(100, 100);
-var f = new Food(10, 10, b);
-var c = new Creature(10, 11, b);
-console.log(c)
-for(var i = 0; i < 10; i++)
-	c.step();
+var Simulator = function(foodCount, maxX, maxY) {
+	
+	var createRandomBoard = function(foodCount, maxX, maxY) {
+		var b = new Board(maxX, maxY);
+		for(var i = 0; i < foodCount; i++) {
+			var x = Math.floor(Math.random() * maxX);
+			var y = Math.floor(Math.random() * maxY);
 
-console.log(c)
+			new Food(x, y, b);
+		}
+		return b;
+	}
 
-var c2 = new Creature(10, 12, b);
-c2.genome = c.genome.cloneWithMutations();
+	var sortByRank = function(creatures) {
+		var creatureCount = creatures.length;
+		var ranked = new Array();
+		for(var i = 0; i < creatureCount; i++) {
+			ranked[i] = creatures[i];
+		}
+		ranked.sort(function(a, b) { return b.rank - a.rank; });
+		return ranked;
+	}
 
-console.log(c2)
+	var simulateAndRankOneGeneration = function(creatureCount, stepsPerGeneration) {
+		var board = createRandomBoard(foodCount, maxX, maxY);
+		var creatures = new Array();
+
+		for(var i = 0; i < creatureCount; i++) {
+			var x = Math.floor(Math.random() * board.maxX);
+			var y = Math.floor(Math.random() * board.maxY);
+			creatures[i] = new Creature(x, y, board);
+		}
+
+		for(var step = 0; step < stepsPerGeneration; step++) {
+			for(var i = 0; i < creatureCount; i++) {
+				creatures[i].step();
+			}
+		}
+
+		return sortByRank(creatures);
+	}
+
+	
+	return {
+		sortByRank: sortByRank,
+		simulateAndRankOneGeneration: simulateAndRankOneGeneration
+	}
+}
+
+var s = new Simulator(300, 100, 100);
+
+var creaturePerformance = new Array(); 
+for(var i = 0; i < 5; i++) {
+	var singleRun = s.simulateAndRankOneGeneration(1, 100);
+	creaturePerformance[i] = singleRun[0];
+}
+//console.log(creaturePerformance);
+var ranked = s.sortByRank(creaturePerformance);
+
+console.log(ranked.map(function(a) { return a.rank; }));
