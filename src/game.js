@@ -409,6 +409,10 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 	var board = createRandomBoard(foodCount, maxX, maxY);
 	var creatures = new Array();
 
+	var getBoard = function() {
+		return board.clone();
+	}
+	
 	var createRandomCreature = function() {
 		var x = Math.floor(Math.random() * maxX);
 		var y = Math.floor(Math.random() * maxY);
@@ -459,7 +463,8 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 	return {
 		getCreaturesByRank: getCreaturesByRank,
 		simulateAndRankOneGeneration: simulateAndRankOneGeneration,
-		nextGeneration: nextGeneration
+		nextGeneration: nextGeneration,
+		getBoard: getBoard
 	}
 }
 

@@ -19,9 +19,17 @@
 				
 				var canvas = document.getElementById('board');
 
-				var board    = new Board(30, 20);
-				var food     = new Food(10, 10, board);
-				var creature = new Creature(11, 10, board);
+				var simulator = new Simulator(50, 100, 30, 20);
+				var MAX_GENERATIONS = 20; 
+				for(var g = 0; g < MAX_GENERATIONS; g++) {
+					simulator.simulateAndRankOneGeneration(1000);
+					simulator.nextGeneration();
+				}
+				var ranked = simulator.getCreaturesByRank()
+				var board = simulator.getBoard();
+				var creature = ranked[0];
+				creature.reset();
+				creature.placeOnBoard(board);
 
 				var painter = new Painter(canvas, board);
 				
