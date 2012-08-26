@@ -65,10 +65,10 @@
 				}
 
 				function replaceCreatureWithNewGenome(genome) {
-					var c = simulator.createRandomCreature();
-					c.genome.fromJson(genome);
 					board.placeEntity(creature.x, creature.y, null);
-					creature = c;
+
+					creature = simulator.createRandomCreature();
+					creature.genome.fromJson(genome);
 					creature.reset();
 					creature.placeOnBoard(board);
 					displayGenome(creature.genome);
@@ -81,7 +81,6 @@
 					worker.postMessage(simulatorConfig);			
 				}
 				
-				$("#simrank").text(creature.rank);
 				creature.reset();
 				creature.placeOnBoard(board);
 
@@ -163,7 +162,7 @@
 		<div id="genome"></div>
 		<div>Respawn counter: <span id="respawnCounter"></span></div>
 		<div>Step counter: <span id="stepcounter"></span></div>
-		<div>Rank: <span id="rank"></span> (<span id="simrank"></span>)</div>
+		<div>Rank: <span id="rank"></span></div>
 		<div>Enemy hits: <span id="enemyhits"></span></div>
 		<h3>Simulation</h3>
 		<table>
