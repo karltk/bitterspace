@@ -231,7 +231,7 @@ var Food = function(x, y, board) {
 	board.placeEntity(x, y, this);
 }
 
-var Creature = function(x, y, board, team) {
+var Creature = function(x, y, team) {
 	this.type = "creature";
 	this.x = x || 0;
 	this.y = y || 0;
@@ -241,8 +241,7 @@ var Creature = function(x, y, board, team) {
 	this.ip = 0;
 	this.team = team || 0;
 	this.rank = 0;
-
-	board.placeEntity(x, y, this);
+	var board = null;
 
 	this._lookFor = function(check, log) {
 		var spotted = board.observe(this.x, this.y, this.direction);
@@ -265,6 +264,17 @@ var Creature = function(x, y, board, team) {
 			this.y -= board.maxY;
 	}
 
+	this.placeOnBoard = function(leBoard) {
+		board = leBoard;
+		board.placeEntity(this.x, this.y, this);
+	}
+	
+	this.reset = function() {
+		this.rank = 0;
+		this.x = x;
+		this.y = y;
+	}
+	
 	this.step = function() {
 		var instr = this.genome.instructions[this.ip];
 		this.ip = (this.ip + 1) % (this.genome.instructions.length - 1);
@@ -342,7 +352,7 @@ var Creature = function(x, y, board, team) {
 	}
 }
 
-var Simulator = function(foodCount, maxX, maxY) {
+var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 
 	var createRandomBoard = function(foodCount, maxX, maxY) {
 		var b = new Board(maxX, maxY);
@@ -357,24 +367,42 @@ var Simulator = function(foodCount, maxX, maxY) {
 
 	var board = createRandomBoard(foodCount, maxX, maxY);
 	var creatures = new Array();
+	
+	var createRandomCreature = function() {
+		var x = Math.floor(Math.random() * maxX);
+		var y = Math.floor(Math.random() * maxY);
 
-	var simulateAndRankOneGeneration = function(creatureCount, stepsPerGeneration) {
+		return new Creature(x, y);
+	}
+
+	var fillWithRandomCreatures = function(b) {
+		for(var i = creatures.length; i < creatureCount; i++) {
+			creatures[i] = createRandomCreature(b);
+		}
+	}
+	
+	var simulateAndRankOneGeneration = function(stepsPerGeneration) {
+		
 		for(var i = 0; i < creatureCount; i++) {
 			var b = board.clone();
-			var x = Math.floor(Math.random() * b.maxX);
-			var y = Math.floor(Math.random() * b.maxY);
-
-			creatures[i] = new Creature(x, y, b);
-
-			for(var step = 0; step < stepsPerGeneration; step++) {
-				creatures[i].step();
-			}
+			var c = creatures[i];
 			
-			creatures[i].x = x;
-			creatures[i].y = y;
+			c.reset();
+			c.placeOnBoard(b);
+			
+			for(var step = 0; step < stepsPerGeneration; step++) {
+				c.step();
+			}
 		}
 	}
 
+	var nextGeneration = function() {
+		creatures.sort(function(a, b) { return b.rank - a.rank; });
+		var sz = Math.floor(creatureCount / 2)
+		creatures = creatures.slice(1, sz);
+		fillWithRandomCreatures();
+	}
+	
 	var getCreaturesByRank = function() {
 		var creatureCount = creatures.length;
 		var ranked = new Array();
@@ -385,18 +413,22 @@ var Simulator = function(foodCount, maxX, maxY) {
 		return ranked;
 	}
 
+	fillWithRandomCreatures();
+	
 	return {
 		getCreaturesByRank: getCreaturesByRank,
-		simulateAndRankOneGeneration: simulateAndRankOneGeneration
+		simulateAndRankOneGeneration: simulateAndRankOneGeneration,
+		nextGeneration: nextGeneration
 	}
 }
 
-var s = new Simulator(300, 100, 100);
+var s = new Simulator(300, 100, 100, 100);
 
 var creaturePerformance = new Array(); 
-var MAX_GENERATIONS = 1; //00;
+var MAX_GENERATIONS = 2; //00;
 for(var g = 0; g < MAX_GENERATIONS; g++) {
-	s.simulateAndRankOneGeneration(100, 100);
+	s.simulateAndRankOneGeneration(100);
+	s.nextGeneration();
 }
 //console.log(creaturePerformance);
 var ranked = s.getCreaturesByRank();
