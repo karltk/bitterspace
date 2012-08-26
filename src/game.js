@@ -47,8 +47,9 @@ var prepareProbabilities = function() {
 var CUMULATIVE_PROBABILITIES = prepareProbabilities();
 
 //Logger
-var GENERAL = 0;
-var GENOME  = 1;
+var GENERAL  = 0;
+var GENOME   = 1;
+var MUTATION = 2;
 var debug = function() {
 	var watching = [ GENERAL ];
 	var red   = '\033[31m';
@@ -155,16 +156,16 @@ var Mutator = function(genome) {
 		// FIXME: use probabilities above..
 		if (chance < 35) {
 			var loc = this.mutateOpval(instructions);
-			console.log ("Mutated Opval at location: " + loc);
+			debug.log(MUTATION, "Mutated Opval at location: " + loc);
 		} else if (chance < 70) {
 			var loc = this.mutateOpcode(instructions);
-			console.log ("Mutated Opcode at location: " + loc);
+			debug.log(MUTATION, "Mutated Opcode at location: " + loc);
 		} else if (chance < 90) {
 			var loc = this.insertOp(instructions);
-			console.log ("Inserted instruction at location: " + loc);
+			debug.log(MUTATION, "Inserted instruction at location: " + loc);
 		} else {
 			var loc = this.deleteOp(instructions);
-			console.log ("Deleted instruction at location: " + loc);
+			debug.log(MUTATION, "Deleted instruction at location: " + loc);
 		}
 	}
 
@@ -377,7 +378,7 @@ var Creature = function(x, y, team) {
 
 	this.step = function() {
 		var instr = this.genome.instructions[this.ip];
-		this.ip = (this.ip + 1) % (this.genome.instructions.length - 1);
+		this.ip = (this.ip + 1) % this.genome.instructions.length;
 		var opcode = instr[0];
 		var opval = instr[1];
 		switch(opcode) {
@@ -485,8 +486,19 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 		}
 	}
 
-	var simulateAndRankOneGeneration = function(stepsPerGeneration) {
+	var nextGeneration = function() {
+		creatures.sort(function(a, b) { return b.rank - a.rank; });
+		var sz = Math.floor(creatureCount / 2);
+		creatures = creatures.slice(0, sz);
+		creatures.forEach(function(creature) {
+			creature.genome.mutateGenome();
+		});
+		fillWithRandomCreatures();
+	}
 
+	var simulateAndRankOneGeneration = function(stepsPerGeneration) {
+		nextGeneration();
+		
 		for(var i = 0; i < creatureCount; i++) {
 			var b = board.clone();
 			var c = creatures[i];
@@ -500,13 +512,6 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 		}
 	}
 
-	var nextGeneration = function() {
-		creatures.sort(function(a, b) { return b.rank - a.rank; });
-		var sz = Math.floor(creatureCount / 2)
-		creatures = creatures.slice(0, sz);
-		fillWithRandomCreatures();
-	}
-
 	var getCreaturesByRank = function() {
 		var creatureCount = creatures.length;
 		var ranked = new Array();
@@ -517,12 +522,9 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 		return ranked;
 	}
 
-	fillWithRandomCreatures();
-
 	return {
 		getCreaturesByRank: getCreaturesByRank,
 		simulateAndRankOneGeneration: simulateAndRankOneGeneration,
-		nextGeneration: nextGeneration,
 		getBoard: getBoard
 	}
 }
@@ -540,7 +542,6 @@ if (isNodeJS)
 		s.simulateAndRankOneGeneration(100);
 		var ranked = s.getCreaturesByRank();
 		console.log(ranked.slice(0, 10).map(function(a) { return a.rank; }));
-		s.nextGeneration();
 	}
 
 }

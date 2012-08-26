@@ -23,7 +23,6 @@
 				var MAX_GENERATIONS = 20; 
 				for(var g = 0; g < MAX_GENERATIONS; g++) {
 					simulator.simulateAndRankOneGeneration(1000);
-					simulator.nextGeneration();
 				}
 				var ranked = simulator.getCreaturesByRank()
 				var board = simulator.getBoard();
