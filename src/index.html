@@ -60,27 +60,24 @@
 				});
 				
 				function onNew(msg) {
-					replaceCreatureWithNewGenome(msg.genome);
+					board.placeEntity(creature.x, creature.y, null);
+					creature = simulator.createRandomCreature();
+					creature.genome.fromJson(msg.genome);
+					creature.reset();
+					creature.placeOnBoard(board);
+					genomePainter.paint();
+
+					rememberAndDisplayGenome(creature.genome);
 					$("#generation").text(msg.generation);
+
 					timeUntilNew = stepsUntilRespawn;
 					shouldAskForNew = true;
-					genomePainter.paint();
 				}
 				
 				function askForNew() {
 					console.log("Asking for new creature");
 					worker.postMessage({ cmd : "new", generations: 10, stepsPerGeneration: 100 });
 					shouldAskForNew = false;
-				}
-
-				function replaceCreatureWithNewGenome(genome) {
-					board.placeEntity(creature.x, creature.y, null);
-
-					creature = simulator.createRandomCreature();
-					creature.genome.fromJson(genome);
-					creature.reset();
-					creature.placeOnBoard(board);
-					displayGenome(creature.genome);
 				}
 								
 				var canvas = document.getElementById('board');
@@ -93,14 +90,10 @@
 				creature.reset();
 				creature.placeOnBoard(board);
 
-				function displayGenome(genome) {
-					history.push(genome.instructions);
-					$("#genome").html(genomeToHtml(genome));
-				}
-				
-				function genomeToHtml(genome)
-				{
+				function rememberAndDisplayGenome(genome) {
 					var instructions = genome.instructions;
+					
+					history.push(instructions);
 					
 					var html = '<ol start=0>';
 					var ip = 0;
@@ -110,7 +103,8 @@
 						ip++;
 					});
 					html += "</ol>";
-					return html;
+
+					$("#genome").html(html);
 				}
 
 				startSimulator();
