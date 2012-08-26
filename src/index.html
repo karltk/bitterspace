@@ -48,15 +48,11 @@
 
 				var painter = new Painter(canvas, board);
 				
-				var doMutation = false;
-				
 				setInterval(function()
 					{
-						if (doMutation == true) {
-							creature.genome.mutateGenome();
-							doMutation = false;
-						}
+						$('#genome li:eq('+creature.ip+')').css("background", "");
 						creature.step();
+						$('#genome li:eq('+creature.ip+')').css("background", "#aaa");
 						painter.paint();
 					}, 100
 				);
