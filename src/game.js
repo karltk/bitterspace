@@ -500,7 +500,7 @@ var Creature = function(x, y, team) {
 	}
 }
 
-var Simulator = function(foodCount, enemyCount, creatureCount, maxX, maxY) {
+var Simulator = function(foodCount, enemyCount, creatureCount, maxX, maxY, config) {
 
 	var createRandomBoard = function() {
 		var b = new Board(maxX, maxY);
@@ -554,7 +554,9 @@ var Simulator = function(foodCount, enemyCount, creatureCount, maxX, maxY) {
 	}
 
 	var nextGeneration = function() {
-		
+		if (config.newBoardEachGeneration)
+			board = createRandomBoard();
+
 		var generationNext = new Array();
 		
 		creatures.sort(function(a, b) { return b.rank - a.rank; });
@@ -613,7 +615,7 @@ if (isNodeJS)
 {
 	//debug.watch(GENOME);
 
-	var s = new Simulator(300, 100, 100, 100, 100);
+	var s = new Simulator(300, 100, 100, 100, 100, {});
 
 	var MAX_GENERATIONS = 200; //00;
 	for(var g = 0; g < MAX_GENERATIONS; g++) {

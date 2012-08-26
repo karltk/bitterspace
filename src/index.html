@@ -27,13 +27,13 @@
 
 				var canvas = document.getElementById('board');
 
-				var simulator = new Simulator(50, 30, 100, 30, 20);
+				var simulator = new Simulator(50, 30, 100, 30, 20, config);
 				var MAX_GENERATIONS = config.generations;
 				for(var g = 0; g < MAX_GENERATIONS; g++) {
-					simulator.simulateAndRankOneGeneration(config.steps_per_generation);
+					simulator.simulateAndRankOneGeneration(config.stepsPerGeneration);
 				}
 
-				var ranked = simulator.getCreaturesByRank()
+				var ranked = simulator.getCreaturesByRank();
 				var board = simulator.getBoard();
 				var creature = ranked[0];
 				creature.reset();
@@ -72,8 +72,9 @@
 			function readConfig()
 			{
 				var config = {
-					generations:          parseInt($("#generations").val()),
-					steps_per_generation: parseInt($("#steps").val()),
+					generations:            parseInt($("#generations").val()),
+					stepsPerGeneration:     parseInt($("#steps").val()),
+					newBoardEachGeneration: $("#newboard").is(':checked'),
 				};
 				console.log(config);
 				return config;
@@ -100,6 +101,10 @@
 
 			<label for="steps">Steps per generation:</label>
 			<input id="steps" value="20"></input>
+			<br>
+
+			<label for="newboard">New board per generation</label>
+			<input id="newboard" type="checkbox"></input>
 		</form>
 	</body>
 </html>
