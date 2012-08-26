@@ -18,6 +18,7 @@ var INSTRUCTION_PROBABILITIES = [
                                  [ BRANCH, 5]
                                  ];
 
+//FIXME prettify
 MUTATION_OPCODE = 1;
 MUTATION_OPVAL = 2;
 MUTATION_INSERT_OP = 3;
@@ -28,25 +29,29 @@ var MUTATION_PROBABILITIES = [
                               [ MUTATION_OPVAL, 35]
                               [ MUTATION_INSERT_OP, 15 ],
                               [ MUTATION_DELTE_OP, 15]
-];
+                              ];
+
+var prepareProbabilities = function() {
+	var ls = new Array();
+	var cum = 0;
+	for(var i = 0; i < INSTRUCTION_PROBABILITIES.length; i++) {
+		var opcode = INSTRUCTION_PROBABILITIES[i][0];
+		var prob = INSTRUCTION_PROBABILITIES[i][1];
+		ls[i] = { "probabilityCutoff" : cum, "opcode" : opcode };
+		cum += prob;
+	}
+	ls.maxProbability = cum;
+	return ls;
+} 
+
+var CUMULATIVE_PROBABILITIES = prepareProbabilities();
+
 
 var Genome = function() {
-	this.maxInstrCount = 10;
+	this.maxInstrCount = 5;
 	this.instructions = new Array();
 	this.mutator = new Mutator();
 
-	var prepareProbabilities = function() {
-		var ls = new Array();
-		var cum = 0;
-		for(var i = 0; i < INSTRUCTION_PROBABILITIES.length; i++) {
-			var opcode = INSTRUCTION_PROBABILITIES[i][0];
-			var prob = INSTRUCTION_PROBABILITIES[i][1];
-			ls[i] = { "probabilityCutoff" : cum, "opcode" : opcode };
-			cum += prob;
-		}
-		ls.maxProbability = cum;
-		return ls;
-	} 
 
 	var pickRandomOpCode = function(probs) {
 		var x = Math.floor(Math.random() * probs.maxProbability);
@@ -55,27 +60,46 @@ var Genome = function() {
 				return probs[i].opcode;
 		throw "Bogus probability " + x + " out of " + probs.maxProbability;
 	}
-	
+
+	var generateRandomInstruction = function(maxInstrCount) {
+		var opcode = pickRandomOpCode(CUMULATIVE_PROBABILITIES);
+		var opval = 0;
+		if(opcode >= BRANCH_IF_ENEMY && opcode <= BRANCH)
+			opval = Math.floor(Math.random() * maxInstrCount);
+		else if(opcode == TURN)
+			opval = Math.floor(Math.random() * 6 - 3);
+		return [opcode, opval];
+	}
+
 	this.populateAtRandom = function() {
-		var probs = prepareProbabilities();
-		console.log(probs);
 		for(var i = 0; i < this.maxInstrCount; i++) {
-			var opcode = pickRandomOpCode(probs);;
-			var opval = 0;
-			if(opcode >= BRANCH_IF_ENEMY && opcode <= BRANCH)
-				opval = Math.floor(Math.random() * this.maxInstrCount);
-			else if(opcode == TURN)
-				opval = Math.floor(Math.random() * 6 - 3);
-			this.instructions[i] = [opcode, opval];
+			this.instructions[i] = generateRandomInstruction(this.maxInstrCount);
 		}
 		return this;
 	};
-	
+
+
+	this.cloneWithMutations = function() {
+		var clone = new Genome();
+		clone.maxInstrCount = this.maxInstrCount;
+		clone.instructions = new Array();
+
+		for(var i = 0; i < this.instructions.length; i++) {
+			var x = this.instructions[i];
+			clone.instructions[i] = [ x[0], x[1] ];
+		}
+
+		var i = Math.random() * clone.instructions.length;
+		clone.instructions[i] = generateRandomInstruction(clone.maxInstrCount);
+
+		return clone;
+	}
+
 	this.mutateGenome = function() {
 		// check mutation probabilities........
 		this.mutateOpcode();
 	}
-	
+
 	this.mutateOpcode = function() {
 		console.log("Mutation!");
 		console.dir({"Old genome": this.instructions})
@@ -86,7 +110,7 @@ var Genome = function() {
 		var probs = prepareProbabilities();
 		var newopcode = pickRandomOpCode(probs);
 		var newopval = 0;
-		
+
 		// Retain op val?
 		if (newopcode <= FORWARD)
 			newopval = 0;
@@ -99,29 +123,29 @@ var Genome = function() {
 			else
 				newopval = Math.floor(Math.random() * this.maxInstrCount);
 		}
-		
+
 		this.instructions[index] = [newopcode, newopval];
-		
+
 		console.log("Changed " + oldop[0] + " to " + newopcode);
 		console.dir({"New genome": this.instructions})
 	}
-	
+
 	this.mutateOpval = function() {
-		
+
 	}
-	
+
 	this.mutateInsert = function() {
-		
+
 	}
-	
+
 	this.mutateDelete = function() {
-		
+
 	}
 };
 
 var Mutator = function() {
 
-	
+
 }
 
 NORTH = 1;
@@ -133,18 +157,18 @@ var Board = function(maxX, maxY) {
 	this.maxX = maxX;
 	this.maxY = maxY;
 	this.cells = new Array();
-	
+
 	for(var y = 0; y < maxY; y++) {
 		this.cells[y] = new Array();
 		for(var x = 0; x < maxX; x++) {
 			this.cells[y][x] = null;
 		}
 	}
-	
+
 	this.placeEntity = function(x,y, entity) {
 		this.cells[y][x] = entity;
 	}
-	
+
 	this.observe = function(x, y, direction) {
 		switch(direction) {
 		case WEST:
@@ -180,7 +204,7 @@ var Food = function(x, y, board) {
 	this.type = "food";
 	this.x = x;
 	this.y = y;
-	
+
 	board.placeEntity(x, y, this);
 }
 
@@ -193,7 +217,7 @@ var Creature = function(x, y, board, team) {
 	this.genome = new Genome().populateAtRandom(); 
 	this.ip = 0;
 	this.team = team || 0;
-	
+
 	board.placeEntity(x, y, this);
 
 	this._lookFor = function(check, log) {
@@ -296,4 +320,10 @@ var c = new Creature(10, 11, b);
 console.log(c)
 for(var i = 0; i < 10; i++)
 	c.step();
+
 console.log(c)
+
+var c2 = new Creature(10, 12, b);
+c2.genome = c.genome.cloneWithMutations();
+
+console.log(c2)
