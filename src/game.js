@@ -16,20 +16,13 @@ var INSTRUCTION_PROBABILITIES = [
                                  [ BRANCH_IF_FRIEND, 5],
                                  [ BRANCH_IF_FOOD, 5 ],
                                  [ BRANCH, 5]
-                                 ];
+                                ];
 
-//FIXME prettify
-MUTATION_OPCODE = 1;
-MUTATION_OPVAL = 2;
-MUTATION_INSERT_OP = 3;
-MUTATION_DELTE_OP = 4;
-
-var MUTATION_PROBABILITIES = [
-                              [ MUTATION_OPCODE, 35 ],
-                              [ MUTATION_OPVAL, 35]
-                              [ MUTATION_INSERT_OP, 15 ],
-                              [ MUTATION_DELTE_OP, 15]
-                              ];
+// Mutation probabilities
+PROB_MUTATION_OPVAL      = 35; // Mutate opval
+PROB_MUTATION_OPCODE     = 35; // Mutate opcode (try to keep opval)
+PROB_MUTATION_INSERT_OP  = 20; // Insert [ opcode, opval ]
+PROB_MUTATION_DELETE_OP  = 10; // Delete op
 
 var prepareProbabilities = function() {
 	var ls = new Array();
@@ -154,15 +147,18 @@ var Mutator = function(genome) {
 		var chance = Math.floor(Math.random() * 100);
 				
 		// FIXME: use probabilities above..
-		if (chance < 35) {
+		if (chance < PROB_MUTATION_OPVAL) {
 			var loc = this.mutateOpval(instructions);
 			debug.log(MUTATION, "Mutated Opval at location: " + loc);
-		} else if (chance < 70) {
+			
+		} else if (chance < PROB_MUTATION_OPVAL + PROB_MUTATION_OPCODE) {
 			var loc = this.mutateOpcode(instructions);
 			debug.log(MUTATION, "Mutated Opcode at location: " + loc);
-		} else if (chance < 90) {
+			
+		} else if (chance < PROB_MUTATION_OPVAL + PROB_MUTATION_OPCODE + PROB_MUTATION_INSERT_OP) {
 			var loc = this.insertOp(instructions);
 			debug.log(MUTATION, "Inserted instruction at location: " + loc);
+			
 		} else {
 			var loc = this.deleteOp(instructions);
 			debug.log(MUTATION, "Deleted instruction at location: " + loc);
@@ -216,9 +212,7 @@ var Mutator = function(genome) {
 	
 	this.deleteOpOnLocation = function(instructions, loc) {
 		instructions.splice(loc, 1);
-		
-		// FIXME? deletion skews instruction pointers for branching.
-		
+				
 		for (var i = 0; i < instructions.length; i++)
 			if (instructions[i][0] > TURN)
 				instructions[i][1] = Math.min(instructions[i][1], instructions.length - 1);
@@ -330,6 +324,35 @@ var Food = function(x, y, board) {
 	board.placeEntity(x, y, this);
 }
 
+var stringifyDirection = function(direction)
+{
+	switch ((direction+3) % 4 + 1) { // +3 == -1 mod 4
+		case WEST:  return "WEST";
+		case EAST:  return "EAST";
+		case NORTH: return "NORTH";
+		case SOUTH: return "SOUTH";
+	}
+	return "<ILLEGAL DIRECTION>";
+}
+
+var stringifyInstruction = function(instruction)
+{
+	var opcode = instruction[0];
+	var opval  = instruction[1];
+
+	switch(opcode) {
+	case NOP:              return "NOP";
+	case TURN:             return "TURN " + opval + " CW";
+	case FORWARD:          return "FORWARD";
+	case BRANCH_IF_ENEMY:  return "BRANCH_IF_ENEMY " + opval;
+	case BRANCH_IF_FRIEND: return "BRANCH_IF_FRIEND " + opval;
+	case BRANCH_IF_FOOD:   return "BRANCH_IF_FOOD " + opval;
+	case BRANCH:           return "BRANCH" + opval;
+	}
+
+	return "<ILLEGAL INSTRUCTION>";
+}
+
 var Creature = function(x, y, team) {
 	this.type = "creature";
 	this.x = x || 0;
@@ -392,12 +415,13 @@ var Creature = function(x, y, team) {
 
 	this.step = function() {
 		var instr = this.genome.instructions[this.ip];
+		debug.log(GENOME, stringifyInstruction(instr));
+
 		this.ip = (this.ip + 1) % this.genome.instructions.length;
 		var opcode = instr[0];
 		var opval = instr[1];
 		switch(opcode) {
 		case NOP: {
-			debug.log(GENOME, "NOP");
 			break;
 		}
 		case TURN: {
@@ -406,7 +430,6 @@ var Creature = function(x, y, team) {
 				this.direction -= WEST;
 			if(this.direction < NORTH)
 				this.direction += WEST;
-			debug.log(GENOME, "TURN " + opval);
 			break;
 		}
 		case FORWARD: {
@@ -437,7 +460,6 @@ var Creature = function(x, y, team) {
 				this.rank += 1;
 			} 
 			board.placeEntity(this.x, this.y, this);
-			debug.log(GENOME, "FORWARD");
 			break;
 		}
 		case BRANCH_IF_ENEMY: {
@@ -456,7 +478,6 @@ var Creature = function(x, y, team) {
 			break;
 		}
 		case BRANCH: 
-			debug.log(GENOME, "BRANCH");
 			this.ip = opval;
 			break;
 		default:
