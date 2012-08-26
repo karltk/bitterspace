@@ -355,7 +355,27 @@ var Simulator = function(foodCount, maxX, maxY) {
 		return b;
 	}
 
-	var sortByRank = function(creatures) {
+	var board = createRandomBoard(foodCount, maxX, maxY);
+	var creatures = new Array();
+
+	var simulateAndRankOneGeneration = function(creatureCount, stepsPerGeneration) {
+		for(var i = 0; i < creatureCount; i++) {
+			var b = board.clone();
+			var x = Math.floor(Math.random() * b.maxX);
+			var y = Math.floor(Math.random() * b.maxY);
+
+			creatures[i] = new Creature(x, y, b);
+
+			for(var step = 0; step < stepsPerGeneration; step++) {
+				creatures[i].step();
+			}
+			
+			creatures[i].x = x;
+			creatures[i].y = y;
+		}
+	}
+
+	var getCreaturesByRank = function() {
 		var creatureCount = creatures.length;
 		var ranked = new Array();
 		for(var i = 0; i < creatureCount; i++) {
@@ -365,30 +385,8 @@ var Simulator = function(foodCount, maxX, maxY) {
 		return ranked;
 	}
 
-	var board = createRandomBoard(foodCount, maxX, maxY);
-
-	var simulateAndRankOneGeneration = function(creatureCount, stepsPerGeneration) {
-		var b = board.clone();
-		var creatures = new Array();
-
-		for(var i = 0; i < creatureCount; i++) {
-			var x = Math.floor(Math.random() * b.maxX);
-			var y = Math.floor(Math.random() * b.maxY);
-			creatures[i] = new Creature(x, y, b);
-		}
-
-		for(var step = 0; step < stepsPerGeneration; step++) {
-			for(var i = 0; i < creatureCount; i++) {
-				creatures[i].step();
-			}
-		}
-
-		return sortByRank(creatures);
-	}
-
-	
 	return {
-		sortByRank: sortByRank,
+		getCreaturesByRank: getCreaturesByRank,
 		simulateAndRankOneGeneration: simulateAndRankOneGeneration
 	}
 }
@@ -396,11 +394,11 @@ var Simulator = function(foodCount, maxX, maxY) {
 var s = new Simulator(300, 100, 100);
 
 var creaturePerformance = new Array(); 
-for(var i = 0; i < 5; i++) {
-	var singleRun = s.simulateAndRankOneGeneration(1, 100);
-	creaturePerformance[i] = singleRun[0];
+var MAX_GENERATIONS = 1; //00;
+for(var g = 0; g < MAX_GENERATIONS; g++) {
+	s.simulateAndRankOneGeneration(100, 100);
 }
 //console.log(creaturePerformance);
-var ranked = s.sortByRank(creaturePerformance);
+var ranked = s.getCreaturesByRank();
 
-console.log(ranked.map(function(a) { return a.rank; }));
+console.log(ranked.slice(1, 10).map(function(a) { return a.rank; }));
