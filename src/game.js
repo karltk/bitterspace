@@ -89,7 +89,6 @@ var debug = function() {
 var Genome = function() {
 	this.maxInstrCount = 5;
 	this.instructions = new Array();
-	this.mutator = new Mutator();
 
 
 	this.clone = function() {
@@ -104,7 +103,7 @@ var Genome = function() {
 		return clone;
 	}
 
-	var pickRandomOpCode = function(probs) {
+	this.pickRandomOpCode = function(probs) {
 		var x = Math.floor(Math.random() * probs.maxProbability);
 		for(var i = probs.length - 1; i >= 0; i--)
 			if(x >= probs[i].probabilityCutoff)
@@ -112,8 +111,8 @@ var Genome = function() {
 		throw "Bogus probability " + x + " out of " + probs.maxProbability;
 	}
 
-	var generateRandomInstruction = function(maxInstrCount) {
-		var opcode = pickRandomOpCode(CUMULATIVE_PROBABILITIES);
+	this.generateRandomInstruction = function(maxInstrCount) {
+		var opcode = this.pickRandomOpCode(CUMULATIVE_PROBABILITIES);
 		var opval = 0;
 		if(opcode >= BRANCH_IF_ENEMY && opcode <= BRANCH)
 			opval = Math.floor(Math.random() * maxInstrCount);
@@ -124,7 +123,7 @@ var Genome = function() {
 
 	this.populateAtRandom = function() {
 		for(var i = 0; i < this.maxInstrCount; i++) {
-			this.instructions[i] = generateRandomInstruction(this.maxInstrCount);
+			this.instructions[i] = this.generateRandomInstruction(this.maxInstrCount);
 		}
 		return this;
 	};
@@ -134,61 +133,121 @@ var Genome = function() {
 		var clone = this.clone();
 
 		var i = Math.random() * clone.instructions.length;
-		clone.instructions[i] = generateRandomInstruction(clone.maxInstrCount);
+		clone.instructions[i] = this.generateRandomInstruction(clone.maxInstrCount);
 
 		return clone;
 	}
 
 	this.mutateGenome = function() {
-		// check mutation probabilities........
-		this.mutateOpcode();
+		var mutator = new Mutator(this);
+		mutator.mutateGenome(this.instructions);
 	}
-
-	this.mutateOpcode = function() {
-		console.log("Mutation!");
-		console.dir({"Old genome": this.instructions})
-		// Change opcode
-		var index = Math.floor(Math.random() * (this.instructions.length - 1));
-		console.log("Changing index " + index);
-		var oldop = this.instructions[index];
-		var probs = prepareProbabilities();
-		var newopcode = pickRandomOpCode(probs);
-		var newopval = 0;
-
-		// Retain op val?
-		if (newopcode <= FORWARD)
-			newopval = 0;
-		else if (newopcode == TURN)
-			newopval = Math.floor(Math.random() * 6 - 3);
-		else if (newopcode >= TURN) {
-			// Keep old op val or not..
-			if (oldop[0] >= TURN)
-				newopval = oldop[1];
-			else
-				newopval = Math.floor(Math.random() * this.maxInstrCount);
-		}
-
-		this.instructions[index] = [newopcode, newopval];
-
-		console.log("Changed " + oldop[0] + " to " + newopcode);
-		console.dir({"New genome": this.instructions})
-	}
-
-	this.mutateOpval = function() {
-
-	}
-
-	this.mutateInsert = function() {
-
-	}
-
-	this.mutateDelete = function() {
-
-	}
+	
 };
 
-var Mutator = function() {
+var Mutator = function(genome) {
+	
+	this.genome = genome;
 
+	this.mutateGenome = function(instructions) {
+		var chance = Math.floor(Math.random() * 100);
+				
+		// FIXME: use probabilities above..
+		if (chance < 35) {
+			var loc = this.mutateOpval(instructions);
+			console.log ("Mutated Opval at location: " + loc);
+		} else if (chance < 70) {
+			var loc = this.mutateOpcode(instructions);
+			console.log ("Mutated Opcode at location: " + loc);
+		} else if (chance < 90) {
+			var loc = this.insertOp(instructions);
+			console.log ("Inserted instruction at location: " + loc);
+		} else {
+			var loc = this.deleteOp(instructions);
+			console.log ("Deleted instruction at location: " + loc);
+		}
+	}
+
+	this.randomLocation = function(instructions) {
+		var loc = Math.floor(Math.random() * (instructions.length - 1));
+		return loc;
+	}
+
+	this.mutateOpval = function(instructions) {
+		var loc = this.randomLocation(instructions);
+		this.mutateOpvalOnLocation(instructions, loc);
+		return loc;
+	}
+	
+	this.mutateOpvalOnLocation = function(instructions, loc) {
+		var opcode = instructions[loc][0];
+		var opval = 0;
+		
+		if (opcode == TURN)
+			opval = Math.floor(Math.random() * 6 - 3);
+		else if (opcode > TURN)
+			opval = Math.floor(Math.random() * (instructions.length - 1));
+		
+		instructions[loc][1] = opval;
+	}
+
+	this.insertOp = function(instructions) {
+		var loc = this.randomLocation(instructions);
+		this.insertOpOnLocation(instructions, loc);
+		return loc;
+	}
+	
+	this.insertOpOnLocation = function(instructions, loc) {
+		var newinstr = this.genome.generateRandomInstruction(instructions.length - 1); // Change to random
+		instructions.splice(loc,0,newinstr);
+	}
+
+	this.deleteOp = function(instructions) {
+		
+		// Don't delete last instruction..
+		if (instructions.length == 1)
+			return 0;
+		
+		var loc = this.randomLocation(instructions);
+		this.deleteOpOnLocation(instructions, loc);
+		return loc;
+	}
+	
+	this.deleteOpOnLocation = function(instructions, loc) {
+		instructions.splice(loc, 1);
+		
+		// FIXME? deletion skews instruction pointers for branching.
+		
+		for (var i = 0; i < instructions.length; i++)
+			if (instructions[i][0] > TURN)
+				instructions[i][1] = Math.min(instructions[i][1], instructions.length - 1);
+	}
+	
+	this.mutateOpcodeOnLocation = function(instructions, loc) {
+		var oldinstr = instructions[loc];
+		this.deleteOpOnLocation(instructions, loc);
+		this.insertOpOnLocation(instructions, loc);
+		
+		var newinstr = instructions[loc];
+		
+		// Try to retain old OP val
+		if (newinstr[0] <= FORWARD)
+			instructions[loc][1] = 0;
+		else if (newinstr[0] == TURN)
+			instructions[loc][1] = Math.floor(Math.random() * 6 - 3);
+		else if (newinstr[0] > TURN) {
+			if (oldinstr[0] > TURN)
+				instructions[loc][1] = oldinstr[1];
+			else
+				instructions[loc][1] = this.randomLocation(instructions);
+		}
+	}
+	
+	this.mutateOpcode = function(instructions) {
+		var loc = this.randomLocation(instructions);
+		this.mutateOpcodeOnLocation(instructions, loc);
+		return loc;
+	}
 
 }
 
