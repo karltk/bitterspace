@@ -35,11 +35,14 @@
 				
 				function genomeToHtml(instructions)
 				{
-					var html = '';
+					var html = '<ol start=0>';
+					var ip = 0;
 					
 					instructions.forEach(function(instruction) {
-						html += "<div class='instruction'>" + stringifyInstruction(instruction).toLowerCase() + "</div>";
+						html += "<li class='instruction'>" + stringifyInstruction(instruction).toLowerCase() + "</li>";
+						ip++;
 					});
+					html += "</ol>";
 					return html;
 				}
 
