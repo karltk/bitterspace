@@ -53,6 +53,18 @@ var Genome = function() {
 	this.mutator = new Mutator();
 
 
+	this.clone = function() {
+		var clone = new Genome();
+		clone.maxInstrCount = this.maxInstrCount;
+		clone.instructions = new Array();
+
+		for(var i = 0; i < this.instructions.length; i++) {
+			var x = this.instructions[i];
+			clone.instructions[i] = [ x[0], x[1] ];
+		}
+		return clone;
+	}
+	
 	var pickRandomOpCode = function(probs) {
 		var x = Math.floor(Math.random() * probs.maxProbability);
 		for(var i = probs.length - 1; i >= 0; i--)
@@ -80,15 +92,8 @@ var Genome = function() {
 
 
 	this.cloneWithMutations = function() {
-		var clone = new Genome();
-		clone.maxInstrCount = this.maxInstrCount;
-		clone.instructions = new Array();
-
-		for(var i = 0; i < this.instructions.length; i++) {
-			var x = this.instructions[i];
-			clone.instructions[i] = [ x[0], x[1] ];
-		}
-
+		var clone = this.clone();
+		
 		var i = Math.random() * clone.instructions.length;
 		clone.instructions[i] = generateRandomInstruction(clone.maxInstrCount);
 
@@ -164,7 +169,21 @@ var Board = function(maxX, maxY) {
 			this.cells[y][x] = null;
 		}
 	}
-
+	
+	this.clone = function() {
+		var clone = new Board();
+		clone.maxX = this.maxX;
+		clone.maxY = this.maxY;
+		clone.cells = new Array();
+		for(var y = 0; y < maxY; y++) {
+			clone.cells[y] = new Array();
+			for(var x = 0; x < maxX; x++) {
+				clone.cells[y][x] = this.cells[y][x];
+			}
+		}
+		return clone;
+	}
+	
 	this.placeEntity = function(x,y, entity) {
 		this.cells[y][x] = entity;
 	}
@@ -324,7 +343,7 @@ var Creature = function(x, y, board, team) {
 }
 
 var Simulator = function(foodCount, maxX, maxY) {
-	
+
 	var createRandomBoard = function(foodCount, maxX, maxY) {
 		var b = new Board(maxX, maxY);
 		for(var i = 0; i < foodCount; i++) {
@@ -346,14 +365,16 @@ var Simulator = function(foodCount, maxX, maxY) {
 		return ranked;
 	}
 
+	var board = createRandomBoard(foodCount, maxX, maxY);
+
 	var simulateAndRankOneGeneration = function(creatureCount, stepsPerGeneration) {
-		var board = createRandomBoard(foodCount, maxX, maxY);
+		var b = board.clone();
 		var creatures = new Array();
 
 		for(var i = 0; i < creatureCount; i++) {
-			var x = Math.floor(Math.random() * board.maxX);
-			var y = Math.floor(Math.random() * board.maxY);
-			creatures[i] = new Creature(x, y, board);
+			var x = Math.floor(Math.random() * b.maxX);
+			var y = Math.floor(Math.random() * b.maxY);
+			creatures[i] = new Creature(x, y, b);
 		}
 
 		for(var step = 0; step < stepsPerGeneration; step++) {
