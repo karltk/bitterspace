@@ -342,6 +342,20 @@ var Creature = function(x, y, team) {
 	this.rank = 0;
 	var board = null;
 
+	this.clone = function() {
+		var clone = new Creature(x, y);
+		clone.x = this.x;
+		clone.y = this.y;
+		clone.type = this.type;
+		clone.direction = this.direction;
+		clone.generation = this.generation;
+		clone.genome = this.genome.clone();
+		clone.ip = this.ip;
+		clone.team = this.team;
+		clone.rank = this.rank;
+		return clone;
+	}
+	
 	this._lookFor = function(check, log) {
 		var spotted = board.observe(this.x, this.y, this.direction);
 		var found = false;
@@ -480,19 +494,39 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 		return new Creature(x, y);
 	}
 
-	var fillWithRandomCreatures = function(b) {
+	var fillWithRandomCreatures = function() {
 		for(var i = creatures.length; i < creatureCount; i++) {
-			creatures[i] = createRandomCreature(b);
+			creatures[i] = createRandomCreature();
+		}
+	}
+	
+	var pushWithMutatedClones = function(target, creature, mutatedSiblingCount) {
+		target.push(creature);
+		for(var i = 0; i < mutatedSiblingCount; i++) {
+			var c = creature.clone();
+			c.genome.mutateGenome();
+			target.push(c);
 		}
 	}
 
 	var nextGeneration = function() {
+		
+		var generationNext = new Array();
+		
 		creatures.sort(function(a, b) { return b.rank - a.rank; });
-		var sz = Math.floor(creatureCount / 2);
-		creatures = creatures.slice(0, sz);
-		creatures.forEach(function(creature) {
-			creature.genome.mutateGenome();
+		
+		var eliteCount = Math.floor(creatureCount * 10/100); 
+		var trashCount = Math.floor(creatureCount * 20/100);
+		
+		creatures.slice(0, eliteCount).forEach(function(e) {
+			pushWithMutatedClones(generationNext, e, 3);
 		});
+		
+		creatures.slice(creatureCount - trashCount, trashCount).forEach(function (e) {
+			pushWithMutatedClones(generationNext, e, 3);
+		});
+		
+		creatures = generationNext;
 		fillWithRandomCreatures();
 	}
 
