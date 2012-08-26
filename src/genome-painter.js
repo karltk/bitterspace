@@ -1,12 +1,12 @@
 var GenomePainter = function(canvas, history)
 {
-	var sizeX = 200;
+	var sizeX = 500;
 	var sizeY = 100;
 
 	var INSTR_COLORS = new Array();
 	INSTR_COLORS[NOP] = '#334433';
-	INSTR_COLORS[FORWARD] = '#6699aa';
-	INSTR_COLORS[TURN] = '#88aaaa';
+	INSTR_COLORS[FORWARD] = '#0055bb';
+	INSTR_COLORS[TURN] = '#225533';
 	INSTR_COLORS[BRANCH] = '#aacccc';
 	
 	var clear = function() {
