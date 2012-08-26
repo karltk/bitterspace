@@ -370,6 +370,7 @@ var Creature = function(x, y, team) {
 	this.team = team || 0;
 	this.rank = 0;
 	this.enemyhits = 0;
+	this.stepcounter = 0;
 	var board = null;
 
 	this.clone = function() {
@@ -384,6 +385,7 @@ var Creature = function(x, y, team) {
 		clone.team = this.team;
 		clone.rank = this.rank;
 		clone.enemyhits = this.enemyhits;
+		clone.stepcounter = this.stepcounter;
 		return clone;
 	}
 	
@@ -416,6 +418,7 @@ var Creature = function(x, y, team) {
 	this.reset = function() {
 		this.rank = 0;
 		this.enemyhits = 0;
+		this.stepcounter = 0;
 		this.x = x;
 		this.y = y;
 		this.ip = 0;
@@ -423,6 +426,7 @@ var Creature = function(x, y, team) {
 	}
 
 	this.step = function() {
+		this.stepcounter++;
 		var instr = this.genome.instructions[this.ip];
 		debug.log(GENOME, stringifyInstruction(instr));
 
