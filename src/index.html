@@ -24,26 +24,78 @@
 					clearInterval(updateFunction);
 					updateFunction = null;
 				}
-
-				var canvas = document.getElementById('board');
-
-				var simulator = new Simulator(config.foodCount, config.enemyCount, config.creatureCount, config.boardWidth, config.boardHeight, config);
-				var MAX_GENERATIONS = config.generations;
-				for(var g = 0; g < MAX_GENERATIONS; g++) {
-					simulator.simulateAndRankOneGeneration(config.stepsPerGeneration);
-				}
-
+				
+				var simulatorConfig = {
+						cmd: "init", 
+						width: config.boardWidth || 30, 
+						height: config.boardHeight || 20, 
+						foodCount: config.foodCount || 300, 
+						enemyCount: config.enemyCount || 100,
+						creatureCount: config.creatureCount || 100,
+						newBoardEachGeneration: config.newBoardEachGeneration || false
+					};
+				var simulator = new Simulator(simulatorConfig);
 				var ranked = simulator.getCreaturesByRank();
 				var board = simulator.getBoard();
-				var creature = ranked[0];
+				var creature = simulator.createRandomCreature();
+				var timeUntilNew = 0;
+				var shouldAskForNew = true;
+				var TIMEOUT = 30;
+					
+				var worker = new Worker("game.js");
+				
+				worker.addEventListener("message", function(e) {
+					var cmd = e.data.cmd;
+					if(cmd === "new") {
+						onNew(e.data.result);
+					} else {
+						console.log(e.data);
+					}
+				});
+				
+				function onNew(msg) {
+					console.log("onNew : ", msg);
+					replaceCreatureWithNewGenome(msg.genome);
+					timeUntilNew = TIMEOUT;
+					shouldAskForNew = true;
+				}
+				
+				function askForNew() {
+					console.log("Asking for new creature");
+					worker.postMessage({ cmd : "new", generations: 10, stepsPerGeneration: 100 });
+					shouldAskForNew = false;
+				}
+
+				function replaceCreatureWithNewGenome(genome) {
+					var c = simulator.createRandomCreature();
+					c.genome.fromJson(genome);
+					board.placeEntity(creature.x, creature.y, null);
+					creature = c;
+					creature.reset();
+					creature.placeOnBoard(board);
+					displayGenome(creature.genome);
+				}
+								
+				var canvas = document.getElementById('board');
+
+				function startSimulator() {
+					console.log("Requesting new simulator");
+					worker.postMessage(simulatorConfig);			
+				}
+				
 				$("#simrank").text(creature.rank);
 				creature.reset();
 				creature.placeOnBoard(board);
 
-				$("#genome").html(genomeToHtml(creature.genome.instructions));
+				function displayGenome(genome) {
+					console.log("CC", genome);
+					$("#genome").html(genomeToHtml(genome));
+				}
 				
-				function genomeToHtml(instructions)
+				function genomeToHtml(genome)
 				{
+					var instructions = genome.instructions;
+					
 					var html = '<ol start=0>';
 					var ip = 0;
 					
@@ -55,6 +107,9 @@
 					return html;
 				}
 
+				startSimulator();
+				askForNew();
+				
 				var painter = new Painter(canvas, board);
 				
 				updateFunction = setInterval(function()
@@ -66,6 +121,15 @@
 						$('#enemyhits').text(creature.enemyhits);
 						$('#stepcounter').text(creature.stepcounter);
 						painter.paint();
+						if(shouldAskForNew) {
+							timeUntilNew--;
+							$('#respawnCounter').text(TIMEOUT - timeUntilNew + "/" + TIMEOUT);
+							if(timeUntilNew <= 0)  { 
+								askForNew();
+								timeUntilNew = TIMEOUT;
+							}	
+						}
+						
 					}, 100
 				);
 
@@ -99,6 +163,7 @@
 		<canvas id="board">
 		</canvas>
 		<div id="genome"></div>
+		<div>Steps until rewspan: <span id="respawnCounter"></span></div>
 		<div>Step counter: <span id="stepcounter"></span></div>
 		<div>Rank: <span id="rank"></span> (<span id="simrank"></span>)</div>
 		<div>Enemy hits: <span id="enemyhits"></span></div>

@@ -84,6 +84,14 @@ var Genome = function() {
 	this.maxInstrCount = 8;
 	this.instructions = new Array();
 
+	this.asJson = function() {
+		return this.instructions;
+	}
+	
+	this.fromJson = function(newInstructions) {
+		this.instructions = newInstructions;
+		this.maxInstrCount = newInstructions.length;
+	}
 
 	this.clone = function() {
 		var clone = new Genome();
@@ -373,6 +381,10 @@ var Creature = function(x, y, team) {
 	this.stepcounter = 0;
 	var board = null;
 
+	this.asJson = function() {
+		return { genome: this.genome.asJson() };
+	}
+	
 	this.clone = function() {
 		var clone = new Creature(x, y);
 		clone.x = this.x;
@@ -508,8 +520,15 @@ var Creature = function(x, y, team) {
 	}
 }
 
-var Simulator = function(foodCount, enemyCount, creatureCount, maxX, maxY, config) {
+var Simulator = function(config) {
 
+	var foodCount = config.foodCount;
+	var enemyCount = config.enemyCount;
+	var creatureCount = config.creatureCount;
+	var maxX = config.width;
+	var maxY = config.height;
+	var newBoardEachGeneration = config.newBoardEachGeneration;
+	
 	var createRandomBoard = function() {
 		var b = new Board(maxX, maxY);
 		for(var i = 0; i < foodCount; i++) {
@@ -562,7 +581,7 @@ var Simulator = function(foodCount, enemyCount, creatureCount, maxX, maxY, confi
 	}
 
 	var nextGeneration = function() {
-		if (config.newBoardEachGeneration)
+		if (newBoardEachGeneration)
 			board = createRandomBoard();
 
 		var generationNext = new Array();
@@ -611,25 +630,60 @@ var Simulator = function(foodCount, enemyCount, creatureCount, maxX, maxY, confi
 	}
 
 	return {
+		createRandomCreature: createRandomCreature,
 		getCreaturesByRank: getCreaturesByRank,
 		simulateAndRankOneGeneration: simulateAndRankOneGeneration,
 		getBoard: getBoard
 	}
 }
 
-var isNodeJS = (typeof window === 'undefined');
+var isNodeJS = (typeof window === 'undefined') && (typeof module !== 'undefined');
 
 if (isNodeJS)
 {
 	//debug.watch(GENOME);
 
-	var s = new Simulator(300, 100, 100, 100, 100, {});
-
-	var MAX_GENERATIONS = 200; //00;
+	var s = new Simulator({
+		foodCount: 300,
+		enemyCount: 100,
+		creatureCount: 100,
+		width: 100,
+		height: 100,
+		newBoardEachGeneration: false });
+	
+	var MAX_GENERATIONS = 10;
 	for(var g = 0; g < MAX_GENERATIONS; g++) {
 		s.simulateAndRankOneGeneration(100);
 		var ranked = s.getCreaturesByRank();
+		//console.log("" + ranked[0].genome.instructions);
 		console.log(ranked.slice(0, 10).map(function(a) { return a.rank; }));
 	}
+	var ranked = s.getCreaturesByRank();
+	console.log(ranked[0].asJson());
+	
+} else {
+
+	var s = null;
+	
+	self.addEventListener("message", function(e) {
+
+		var msg = e.data;
+
+		if(msg.cmd == "init") {
+			self.postMessage("Initializing simulator");
+			s = new Simulator(msg);
+			self.postMessage("Simulator initialized");
+		} else if(msg.cmd == "new") {
+			self.postMessage("Evolving new creature");
+			for(var g = 0; g < msg.generations; g++) {
+				s.simulateAndRankOneGeneration(msg.stepsPerGeneration);
+			}
+			
+			var ranked = s.getCreaturesByRank();
+			self.postMessage("New creature evolved")
+			self.postMessage("" + ranked);
+			self.postMessage({cmd:"new", result: ranked[0].asJson()});
+		}
+	});
 
 }
