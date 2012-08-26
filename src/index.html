@@ -80,7 +80,6 @@
 					shouldAskForNew = false;
 				}
 								
-				var canvas = document.getElementById('board');
 
 				function startSimulator() {
 					console.log("Requesting new simulator");
@@ -110,8 +109,10 @@
 				startSimulator();
 				askForNew();
 				
-				var painter = new Painter(canvas, board);
-				var genomePainter = new GenomePainter(document.getElementById('history'), history);
+				var boardCanvas = document.getElementById('board');
+				var genomeCanvas = document.getElementById('history');
+				var painter = new Painter(boardCanvas, board);
+				var genomePainter = new GenomePainter(genomeCanvas, history);
 				
 				updateFunction = setInterval(function()
 					{
