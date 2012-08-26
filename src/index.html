@@ -12,9 +12,11 @@
 				/*border: 1px solid black;*/
 			}
 		</style>
+		<script type="text/javascript" src="http://code.jquery.com/jquery.js"></script>
 		<script type="text/javascript">
-			onload = function()
-			{
+		
+			$(document).ready(function() {
+				
 				var canvas = document.getElementById('board');
 
 				var board    = new Board(30, 20);
@@ -22,20 +24,32 @@
 				var creature = new Creature(11, 10, board);
 
 				var painter = new Painter(canvas, board);
-
+				
+				var doMutation = false;
+				
+				$("#mutate").click(function() {
+					doMutation = true;
+				});
+				
 				setInterval(function()
 					{
+						if (doMutation == true) {
+							creature.genome.mutateGenome();
+							doMutation = false;
+						}
 						creature.step();
 						painter.paint();
 					}, 100
 				);
 
 				painter.paint();
-			}
+				
+			});
 		</script>
 	</head>
 	<body>
 		<canvas id="board">
 		</canvas>
+		<button id="mutate">Mutate!</button>
 	</body>
 </html>

@@ -18,9 +18,22 @@ var INSTRUCTION_PROBABILITIES = [
                                  [ BRANCH, 5]
                                  ];
 
+MUTATION_OPCODE = 1;
+MUTATION_OPVAL = 2;
+MUTATION_INSERT_OP = 3;
+MUTATION_DELTE_OP = 4;
+
+var MUTATION_PROBABILITIES = [
+                              [ MUTATION_OPCODE, 35 ],
+                              [ MUTATION_OPVAL, 35]
+                              [ MUTATION_INSERT_OP, 15 ],
+                              [ MUTATION_DELTE_OP, 15]
+];
+
 var Genome = function() {
-	this.maxInstrCount = 5;
+	this.maxInstrCount = 10;
 	this.instructions = new Array();
+	this.mutator = new Mutator();
 
 	var prepareProbabilities = function() {
 		var ls = new Array();
@@ -57,7 +70,59 @@ var Genome = function() {
 		}
 		return this;
 	};
+	
+	this.mutateGenome = function() {
+		// check mutation probabilities........
+		this.mutateOpcode();
+	}
+	
+	this.mutateOpcode = function() {
+		console.log("Mutation!");
+		console.dir({"Old genome": this.instructions})
+		// Change opcode
+		var index = Math.floor(Math.random() * (this.instructions.length - 1));
+		console.log("Changing index " + index);
+		var oldop = this.instructions[index];
+		var probs = prepareProbabilities();
+		var newopcode = pickRandomOpCode(probs);
+		var newopval = 0;
+		
+		// Retain op val?
+		if (newopcode <= FORWARD)
+			newopval = 0;
+		else if (newopcode == TURN)
+			newopval = Math.floor(Math.random() * 6 - 3);
+		else if (newopcode >= TURN) {
+			// Keep old op val or not..
+			if (oldop[0] >= TURN)
+				newopval = oldop[1];
+			else
+				newopval = Math.floor(Math.random() * this.maxInstrCount);
+		}
+		
+		this.instructions[index] = [newopcode, newopval];
+		
+		console.log("Changed " + oldop[0] + " to " + newopcode);
+		console.dir({"New genome": this.instructions})
+	}
+	
+	this.mutateOpval = function() {
+		
+	}
+	
+	this.mutateInsert = function() {
+		
+	}
+	
+	this.mutateDelete = function() {
+		
+	}
 };
+
+var Mutator = function() {
+
+	
+}
 
 NORTH = 1;
 EAST = 2;
@@ -128,7 +193,7 @@ var Creature = function(x, y, board, team) {
 	this.genome = new Genome().populateAtRandom(); 
 	this.ip = 0;
 	this.team = team || 0;
-
+	
 	board.placeEntity(x, y, this);
 
 	this._lookFor = function(check, log) {
