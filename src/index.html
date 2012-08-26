@@ -125,7 +125,9 @@
 						painter.paint();
 						if(shouldAskForNew) {
 							timeUntilNew--;
-							$('#respawnCounter').text(stepsUntilRespawn - timeUntilNew + "/" + stepsUntilRespawn);
+							var pct = (stepsUntilRespawn - timeUntilNew) / stepsUntilRespawn * 100 + "%";
+							console.log(pct);
+							$('#respawnCounter').css("width", pct);
 							if(timeUntilNew <= 0)  { 
 								askForNew();
 								timeUntilNew = stepsUntilRespawn;
@@ -188,7 +190,13 @@
 			<canvas id="board"></canvas>
 			<div id="genome"></div>
 			<canvas id="history"></canvas>
-			<div>Respawn counter: <span id="respawnCounter"></span></div>
+			<div>Respawn counter:
+				<div style="width: 100px; display: inline-block;">
+					<div class="progress">
+  						<div id="respawnCounter" class="bar" style="width: 0%;"></div>
+					</div>
+				</div>
+			</div>
 			<div>Step counter: <span id="stepcounter"></span></div>
 			<div>Rank: <span id="rank"></span></div>
 			<div>Generation: <span id="generation"></span></div>
