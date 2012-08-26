@@ -330,6 +330,35 @@ var Food = function(x, y, board) {
 	board.placeEntity(x, y, this);
 }
 
+var stringifyDirection = function(direction)
+{
+	switch ((direction+3) % 4 + 1) { // +3 == -1 mod 4
+		case WEST:  return "WEST";
+		case EAST:  return "EAST";
+		case NORTH: return "NORTH";
+		case SOUTH: return "SOUTH";
+	}
+	return "<ILLEGAL DIRECTION>";
+}
+
+var stringifyInstruction = function(instruction)
+{
+	var opcode = instruction[0];
+	var opval  = instruction[1];
+
+	switch(opcode) {
+	case NOP:              return "NOP";
+	case TURN:             return "TURN " + opval + " CW";
+	case FORWARD:          return "FORWARD";
+	case BRANCH_IF_ENEMY:  return "BRANCH_IF_ENEMY " + opval;
+	case BRANCH_IF_FRIEND: return "BRANCH_IF_FRIEND " + opval;
+	case BRANCH_IF_FOOD:   return "BRANCH_IF_FOOD " + opval;
+	case BRANCH:           return "BRANCH" + opval;
+	}
+
+	return "<ILLEGAL INSTRUCTION>";
+}
+
 var Creature = function(x, y, team) {
 	this.type = "creature";
 	this.x = x || 0;
@@ -378,12 +407,13 @@ var Creature = function(x, y, team) {
 
 	this.step = function() {
 		var instr = this.genome.instructions[this.ip];
+		debug.log(GENOME, stringifyInstruction(instr));
+
 		this.ip = (this.ip + 1) % this.genome.instructions.length;
 		var opcode = instr[0];
 		var opval = instr[1];
 		switch(opcode) {
 		case NOP: {
-			debug.log(GENOME, "NOP");
 			break;
 		}
 		case TURN: {
@@ -392,7 +422,6 @@ var Creature = function(x, y, team) {
 				this.direction -= WEST;
 			if(this.direction < NORTH)
 				this.direction += WEST;
-			debug.log(GENOME, "TURN " + opval);
 			break;
 		}
 		case FORWARD: {
@@ -423,7 +452,6 @@ var Creature = function(x, y, team) {
 				this.rank += 1;
 			} 
 			board.placeEntity(this.x, this.y, this);
-			debug.log(GENOME, "FORWARD");
 			break;
 		}
 		case BRANCH_IF_ENEMY: {
@@ -442,7 +470,6 @@ var Creature = function(x, y, team) {
 			break;
 		}
 		case BRANCH: 
-			debug.log(GENOME, "BRANCH");
 			this.ip = opval;
 			break;
 		default:

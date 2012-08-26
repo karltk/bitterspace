@@ -22,13 +22,15 @@
 				var simulator = new Simulator(50, 100, 30, 20);
 				var MAX_GENERATIONS = 20; 
 				for(var g = 0; g < MAX_GENERATIONS; g++) {
-					simulator.simulateAndRankOneGeneration(1000);
+					simulator.simulateAndRankOneGeneration(100);
 				}
 				var ranked = simulator.getCreaturesByRank()
 				var board = simulator.getBoard();
 				var creature = ranked[0];
 				creature.reset();
 				creature.placeOnBoard(board);
+
+				$("#genome").html("Genome: " + creature.genome.instructions.map(stringifyInstruction).map(toLowerCase));
 
 				var painter = new Painter(canvas, board);
 				
@@ -58,5 +60,6 @@
 		<canvas id="board">
 		</canvas>
 		<button id="mutate">Mutate!</button>
+		<div id="genome"></div>
 	</body>
 </html>
