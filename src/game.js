@@ -360,16 +360,27 @@ var stringifyDirection = function(direction)
 	return "<ILLEGAL DIRECTION>";
 }
 
+var stringifyCategory = function(category) {
+	switch(category) {
+	case 0: return "UNCONDITIONALLY"
+	case CATEGORY_FOOD: return "FOOD";
+	case CATEGORY_FRIEND: return "FRIEND";
+	case CATEGORY_ENEMY: return "ENEMY";
+	throw "Unknown category";
+	}
+}
+
 var stringifyInstruction = function(instruction)
 {
-	var opcode = instruction[0];
-	var opval  = instruction[1];
+	var opcode = instruction[OPCODE];
+	var opval1 = instruction[OPVAL1];
+	var opval2 = instruction[OPVAL2];
 
 	switch(opcode) {
 	case NOP:              return "NOP";
-	case TURN:             return "TURN " + opval + " CW";
+	case TURN:             return "TURN " + opval1 + " CW";
 	case FORWARD:          return "FORWARD";
-	case BRANCH:           return "BRANCH " + opval;
+	case BRANCH:           return "BRANCH " + stringifyCategory(opval1) + " TO " + opval2;
 	}
 
 	return "<ILLEGAL INSTRUCTION>";
