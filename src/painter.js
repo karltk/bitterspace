@@ -25,7 +25,7 @@ var Painter = function(canvas, board)
 		if (x != creature.x || y != creature.y)
 			alert( "x != creature.x || y != creature.y");
 
-		var color = creature.team == 0 ? '#DEA863' : '#4E6A82';
+		var color = creature.category == CATEGORY_FRIEND ? '#DEA863' : '#4E6A82';
 		var orientation = creature.direction;
 
 		var ctx = canvas.getContext('2d');
@@ -74,10 +74,12 @@ var Painter = function(canvas, board)
 			var entity = board.cells[y][x];
 			if (entity)
 			{
-				if (entity.type == "food")
+				if (entity.category == CATEGORY_FOOD)
 					drawFood(x, y);
-				else if (entity.type == "creature")
+				else if (entity.category == CATEGORY_FRIEND || entity.category == CATEGORY_ENEMY)
 					drawCreature(x, y, entity);
+				else 
+					console.log("Unknown entity category " + entity.category);
 			}
 		}
 	}

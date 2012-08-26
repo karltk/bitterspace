@@ -1,21 +1,25 @@
 
-NOP               = 1 // opval = 0
-FORWARD           = 2 // opval = 0
-TURN              = 3 // opval = number of 90-degree clockwise steps
-BRANCH_IF_ENEMY   = 4 // opval = addr
-BRANCH_IF_FRIEND  = 5 // opval = addr
-BRANCH_IF_FOOD    = 6 // opval = addr
-BRANCH            = 7 // opval = addr
-MAX_INSTR         = 7
+NOP               = 1 // opval1,2 = 0
+FORWARD           = 2 // opval1,2 = 0
+TURN              = 3 // opval1 = number of 90-degree clockwise steps, opval2 = 0
+BRANCH            = 4 // opval1 = entity category, opval2 = addr
+MAX_INSTR         = 4
+
+OPCODE = 0
+OPVAL1 = 1
+OPVAL2 = 2
+
+CATEGORY_FOOD = 1
+CATEGORY_FRIEND = 2
+CATEGORY_ENEMY = 3
+
+MAX_OBSERVABLE_ID = 3 
 
 var INSTRUCTION_PROBABILITIES = [
                                  [ NOP, 2 ],
                                  [ FORWARD, 40 ],
                                  [ TURN, 40 ],
-                                 [ BRANCH_IF_ENEMY, 5 ],
-                                 [ BRANCH_IF_FRIEND, 5],
-                                 [ BRANCH_IF_FOOD, 5 ],
-                                 [ BRANCH, 5]
+                                 [ BRANCH, 20 ]
                                 ];
 
 // Mutation probabilities
@@ -100,7 +104,7 @@ var Genome = function() {
 
 		for(var i = 0; i < this.instructions.length; i++) {
 			var x = this.instructions[i];
-			clone.instructions[i] = [ x[0], x[1] ];
+			clone.instructions[i] = [ x[OPCODE], x[OPVAL1], x[OPVAL2] ];
 		}
 		return clone;
 	}
@@ -115,12 +119,14 @@ var Genome = function() {
 
 	this.generateRandomInstruction = function(maxInstrCount) {
 		var opcode = this.pickRandomOpCode(CUMULATIVE_PROBABILITIES);
-		var opval = 0;
-		if(opcode >= BRANCH_IF_ENEMY && opcode <= BRANCH)
-			opval = Math.floor(Math.random() * maxInstrCount);
-		else if(opcode == TURN)
-			opval = Math.floor(Math.random() * 6 - 3);
-		return [opcode, opval];
+		var opval1 = 0;
+		var opval2 = 0;
+		if(opcode == BRANCH) {
+			opval1 = Math.floor(Math.random() * MAX_OBSERVABLE_ID);
+			opval2 = Math.floor(Math.random() * maxInstrCount);
+		} else if(opcode == TURN)
+			opval1 = Math.floor(Math.random() * 6 - 3);
+		return [opcode, opval1, opval2];
 	}
 
 	this.populateAtRandom = function() {
@@ -185,15 +191,19 @@ var Mutator = function(genome) {
 	}
 	
 	this.mutateOpvalOnLocation = function(instructions, loc) {
-		var opcode = instructions[loc][0];
-		var opval = 0;
+		var opcode = instructions[loc][OPCODE];
+		var opval1 = 0;
+		var opval2 = 0;
 		
 		if (opcode == TURN)
-			opval = Math.floor(Math.random() * 6 - 3);
-		else if (opcode > TURN)
-			opval = Math.floor(Math.random() * (instructions.length - 1));
+			opval1 = Math.floor(Math.random() * 6 - 3);
+		else if (opcode == BRANCH) {
+			opval1 = instructions[loc][OPVAL1]; // FIXME randomize
+			opval2 = Math.floor(Math.random() * (instructions.length - 1));
+		}
 		
-		instructions[loc][1] = opval;
+		instructions[loc][OPVAL1] = opval1;
+		instructions[loc][OPVAL2] = opval2;
 	}
 
 	this.insertOp = function(instructions) {
@@ -204,12 +214,12 @@ var Mutator = function(genome) {
 	
 	this.insertOpOnLocation = function(instructions, loc) {
 		var newinstr = this.genome.generateRandomInstruction(instructions.length - 1);
-		instructions.splice(loc,0,newinstr);
+		instructions.splice(loc, 0, newinstr);
 		
 		// Update pointers so that branching is unaffected:
 		for (var i = 0; i < instructions.length; i++)
-			if ((i != loc) && (instructions[i][0] > TURN) && (instructions[i][1] >= loc))
-				instructions[i][1]++;
+			if ((i != loc) && (instructions[i][OPCODE] == BRANCH) && (instructions[i][OPVAL2] >= loc))
+				instructions[i][OPVAL2]++;
 	}
 
 	this.deleteOp = function(instructions) {
@@ -228,8 +238,8 @@ var Mutator = function(genome) {
 		
 		// Update pointers so that branching is unaffected:
 		for (var i = 0; i < instructions.length; i++)
-			if ((instructions[i][0] > TURN) && (instructions[i][1] > loc))
-				instructions[i][1]--;
+			if ((instructions[i][OPCODE] == BRANCH) && (instructions[i][OPVAL2] > loc))
+				instructions[i][OPVAL2]--;
 	}
 	
 	this.mutateOpcodeOnLocation = function(instructions, loc) {
@@ -240,15 +250,16 @@ var Mutator = function(genome) {
 		var newinstr = instructions[loc];
 		
 		// Try to retain old OP val
-		if (newinstr[0] <= FORWARD)
-			instructions[loc][1] = 0;
-		else if (newinstr[0] == TURN)
-			instructions[loc][1] = Math.floor(Math.random() * 6 - 3);
-		else if (newinstr[0] > TURN) {
-			if (oldinstr[0] > TURN)
-				instructions[loc][1] = oldinstr[1];
-			else
-				instructions[loc][1] = this.randomLocation(instructions);
+		if (newinstr[OPCODE] <= FORWARD)
+			instructions[loc][OPVAL2] = 0;
+		else if (newinstr[OPCODE] == TURN)
+			instructions[loc][OPVAL1] = Math.floor(Math.random() * 6 - 3);
+		else if (newinstr[OPCODE] == BRANCH) {
+			if (oldinstr[OPCODE] == BRANCH) {
+				instructions[loc][OPVAL1] = oldinstr[OPVAL1];
+				instructions[loc][OPVAL2] = oldinstr[OPVAL2];
+			} else
+				instructions[loc][OPVAL1] = this.randomLocation(instructions);
 		}
 	}
 	
@@ -331,7 +342,7 @@ var Board = function(maxX, maxY) {
 }
 
 var Food = function(x, y, board) {
-	this.type = "food";
+	this.category = CATEGORY_FOOD;
 	this.x = x;
 	this.y = y;
 
@@ -358,24 +369,20 @@ var stringifyInstruction = function(instruction)
 	case NOP:              return "NOP";
 	case TURN:             return "TURN " + opval + " CW";
 	case FORWARD:          return "FORWARD";
-	case BRANCH_IF_ENEMY:  return "BRANCH_IF_ENEMY " + opval;
-	case BRANCH_IF_FRIEND: return "BRANCH_IF_FRIEND " + opval;
-	case BRANCH_IF_FOOD:   return "BRANCH_IF_FOOD " + opval;
 	case BRANCH:           return "BRANCH " + opval;
 	}
 
 	return "<ILLEGAL INSTRUCTION>";
 }
 
-var Creature = function(x, y, team) {
-	this.type = "creature";
+var Creature = function(x, y, enemy) {
+	this.category = enemy ? CATEGORY_ENEMY : CATEGORY_FRIEND;
 	this.x = x || 0;
 	this.y = y || 0;
 	this.direction = NORTH;
 	this.generation = 0;
 	this.genome = new Genome().populateAtRandom(); 
 	this.ip = 0;
-	this.team = team || 0;
 	this.rank = 0;
 	this.enemyhits = 0;
 	this.stepcounter = 0;
@@ -389,12 +396,11 @@ var Creature = function(x, y, team) {
 		var clone = new Creature(x, y);
 		clone.x = this.x;
 		clone.y = this.y;
-		clone.type = this.type;
+		clone.category = this.category;
 		clone.direction = this.direction;
 		clone.generation = this.generation;
 		clone.genome = this.genome.clone();
 		clone.ip = this.ip;
-		clone.team = this.team;
 		clone.rank = this.rank;
 		clone.enemyhits = this.enemyhits;
 		clone.stepcounter = this.stepcounter;
@@ -404,7 +410,7 @@ var Creature = function(x, y, team) {
 	this._lookFor = function(check, log) {
 		var spotted = board.observe(this.x, this.y, this.direction);
 		var found = false;
-		if(spotted && check(spotted.type, spotted.team))
+		if(spotted && check(spotted.category))
 			found = true;
 		debug.log(GENOME, log + " " + (found ? "taken" : "not taken"));
 		return found;
@@ -443,14 +449,15 @@ var Creature = function(x, y, team) {
 		debug.log(GENOME, stringifyInstruction(instr));
 
 		this.ip = (this.ip + 1) % this.genome.instructions.length;
-		var opcode = instr[0];
-		var opval = instr[1];
+		var opcode = instr[OPCODE];
+		var opval1 = instr[OPVAL1];
+		var opval2 = instr[OPVAL2];
 		switch(opcode) {
 		case NOP: {
 			break;
 		}
 		case TURN: {
-			this.direction += opval;
+			this.direction += opval1;
 			if(this.direction > WEST)
 				this.direction -= WEST;
 			if(this.direction < NORTH)
@@ -482,9 +489,9 @@ var Creature = function(x, y, team) {
 			}
 			this._wrapAroundXY();
 			var tenant = board.getEntity(this.x, this.y);
-			if(tenant && tenant.type === "food") {
+			if(tenant && tenant.category === CATEGORY_FOOD) {
 				this.rank += 1;
-			} else if(tenant && tenant.type === "creature" && tenant.team != this.team) {
+			} else if(tenant && tenant.category === CATEGORY_ENEMY) {
 				this.rank = 0;
 				this.enemyhits++;
 				this.x = oldX;
@@ -494,23 +501,15 @@ var Creature = function(x, y, team) {
 			board.placeEntity(this.x, this.y, this);
 			break;
 		}
-		case BRANCH_IF_ENEMY: {
-			if(this._lookFor(function(type, team) { return type == "creature" && team != this.team }, "BRANCH_IF_ENEMY"))
-				this.ip = opval;
-			break;
-		}
-		case BRANCH_IF_FRIEND: {
-			if(this._lookFor(function(type, team) { return type == "creature" && team == this.team }, "BRANCH_IF_FRIEND"))
-				this.ip = opval;
-			break;
-		}
-		case BRANCH_IF_FOOD: {
-			if(this._lookFor(function(type, team) { return type == "food" }, "BRANCH_IF_FOOD"))
-				this.ip = opval;
-			break;
-		}
 		case BRANCH: 
-			this.ip = opval;
+			if(opval1 == 0) {
+				// unconditional branch
+				this.ip = opval2;
+			} else {
+				// conditional branch
+				if(this._lookFor(function(category) { return category == opval1; }))
+					this.ip = opval2;
+			}
 			break;
 		default:
 			debug.warning(GENOME, "Unsupported instruction " + opcode);
@@ -542,9 +541,8 @@ var Simulator = function(config) {
 			var x = Math.floor(Math.random() * maxX);
 			var y = Math.floor(Math.random() * maxY);
 
-			var c = new Creature(x, y);
+			var c = new Creature(x, y, true);
 			c.placeOnBoard(b);
-			c.team = 1;
 		}
 		
 		return b;
