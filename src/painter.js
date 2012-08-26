@@ -19,7 +19,7 @@ var Painter = function(canvas, board)
 				ctx.strokeRect(x * tilesize+0.5, y * tilesize+0.5, tilesize, tilesize);
 			}
 	}
-
+	
 	var drawCreature = function(x, y, creature)
 	{
 		if (x != creature.x || y != creature.y)
