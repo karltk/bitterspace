@@ -238,7 +238,7 @@ var Creature = function(x, y, board, team) {
 		if(this.y < 0)
 			this.y += board.maxY;
 		if(this.y >= board.maxY)
-			this.y += board.maxY;
+			this.y -= board.maxY;
 	}
 
 	this.step = function() {
