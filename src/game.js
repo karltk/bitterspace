@@ -347,7 +347,7 @@ var stringifyInstruction = function(instruction)
 	case BRANCH_IF_ENEMY:  return "BRANCH_IF_ENEMY " + opval;
 	case BRANCH_IF_FRIEND: return "BRANCH_IF_FRIEND " + opval;
 	case BRANCH_IF_FOOD:   return "BRANCH_IF_FOOD " + opval;
-	case BRANCH:           return "BRANCH" + opval;
+	case BRANCH:           return "BRANCH " + opval;
 	}
 
 	return "<ILLEGAL INSTRUCTION>";
