@@ -40,9 +40,8 @@
 				var creature = simulator.createRandomCreature();
 				var timeUntilNew = 0;
 				var shouldAskForNew = true;
-				var TIMEOUT = 30;
-					
 				var worker = new Worker("game.js");
+				var stepsUntilRespawn = config.stepsUntilRespawn || 30;
 				
 				worker.addEventListener("message", function(e) {
 					var cmd = e.data.cmd;
@@ -55,7 +54,7 @@
 				
 				function onNew(msg) {
 					replaceCreatureWithNewGenome(msg.genome);
-					timeUntilNew = TIMEOUT;
+					timeUntilNew = stepsUntilRespawn;
 					shouldAskForNew = true;
 				}
 				
@@ -121,10 +120,10 @@
 						painter.paint();
 						if(shouldAskForNew) {
 							timeUntilNew--;
-							$('#respawnCounter').text(TIMEOUT - timeUntilNew + "/" + TIMEOUT);
+							$('#respawnCounter').text(stepsUntilRespawn - timeUntilNew + "/" + stepsUntilRespawn);
 							if(timeUntilNew <= 0)  { 
 								askForNew();
-								timeUntilNew = TIMEOUT;
+								timeUntilNew = stepsUntilRespawn;
 							}	
 						}
 						
@@ -139,6 +138,7 @@
 				var config = {
 					generations:            parseInt($("#generations").val()),
 					stepsPerGeneration:     parseInt($("#steps").val()),
+					stepsUntilRespawn:      parseInt($("#stepsUntilRespawn").val()),
 					foodCount:              parseInt($("#foodCount").val()),
 					enemyCount:             parseInt($("#enemyCount").val()),
 					creatureCount:          parseInt($("#creatureCount").val()),
@@ -161,7 +161,7 @@
 		<canvas id="board">
 		</canvas>
 		<div id="genome"></div>
-		<div>Steps until rewspan: <span id="respawnCounter"></span></div>
+		<div>Respawn counter: <span id="respawnCounter"></span></div>
 		<div>Step counter: <span id="stepcounter"></span></div>
 		<div>Rank: <span id="rank"></span> (<span id="simrank"></span>)</div>
 		<div>Enemy hits: <span id="enemyhits"></span></div>
@@ -175,6 +175,11 @@
 			<tr>
 				<td><label for="steps">Steps per generation:</label>
 				<td><input id="steps" value="20"></input>
+			</tr>
+
+			<tr>
+				<td><label for="steps">Steps until respawn:</label>
+				<td><input id="stepsUntilRespawn" value="35"></input>
 			</tr>
 
 			<tr>
