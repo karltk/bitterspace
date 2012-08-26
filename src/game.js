@@ -80,7 +80,7 @@ var Genome = function() {
 		console.log("Mutation!");
 		console.dir({"Old genome": this.instructions})
 		// Change opcode
-		var index = Math.floor(Math.random() * this.instructions.length);
+		var index = Math.floor(Math.random() * (this.instructions.length - 1));
 		console.log("Changing index " + index);
 		var oldop = this.instructions[index];
 		var probs = prepareProbabilities();
