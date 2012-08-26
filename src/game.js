@@ -46,6 +46,45 @@ var prepareProbabilities = function() {
 
 var CUMULATIVE_PROBABILITIES = prepareProbabilities();
 
+//Logger
+var GENERAL = 0;
+var GENOME  = 1;
+var debug = function() {
+	var watching = [ GENERAL ];
+	var red   = '\033[31m';
+	var blue  = '\033[34m';
+	var reset = '\033[0m';
+
+	var watchingDomain = function(domain)
+	{
+		return domain in watching;
+	}
+
+	var log = function(domain, text) {
+		if (watchingDomain(domain))
+			console.log(text);
+	}
+	var warn = function(domain, text) {
+		if (watchingDomain(domain))
+			console.log(blue+text+reset);
+	}
+	var error = function(domain, text) {
+		if (watchingDomain(domain))
+			console.log(red+text+reset);
+	}
+	var watch = function(domain)
+	{
+		watching.push(domain);
+	}
+
+	return {
+		log:   log,
+		warn:  warn,
+		error: error,
+		watch: watch,
+	};
+}();
+
 
 var Genome = function() {
 	this.maxInstrCount = 5;
@@ -64,7 +103,7 @@ var Genome = function() {
 		}
 		return clone;
 	}
-	
+
 	var pickRandomOpCode = function(probs) {
 		var x = Math.floor(Math.random() * probs.maxProbability);
 		for(var i = probs.length - 1; i >= 0; i--)
@@ -93,7 +132,7 @@ var Genome = function() {
 
 	this.cloneWithMutations = function() {
 		var clone = this.clone();
-		
+
 		var i = Math.random() * clone.instructions.length;
 		clone.instructions[i] = generateRandomInstruction(clone.maxInstrCount);
 
@@ -169,7 +208,7 @@ var Board = function(maxX, maxY) {
 			this.cells[y][x] = null;
 		}
 	}
-	
+
 	this.clone = function() {
 		var clone = new Board();
 		clone.maxX = this.maxX;
@@ -183,7 +222,7 @@ var Board = function(maxX, maxY) {
 		}
 		return clone;
 	}
-	
+
 	this.placeEntity = function(x,y, entity) {
 		this.cells[y][x] = entity;
 	}
@@ -191,7 +230,7 @@ var Board = function(maxX, maxY) {
 	this.getEntity = function(x, y) {
 		return this.cells[y][x];
 	}
-	
+
 	this.observe = function(x, y, direction) {
 		switch(direction) {
 		case WEST:
@@ -248,7 +287,7 @@ var Creature = function(x, y, team) {
 		var found = false;
 		if(spotted && check(spotted.type, spotted.team))
 			found = true;
-		console.log(log + " " + (found ? "taken" : "not taken"));
+		debug.log(GENOME, log + " " + (found ? "taken" : "not taken"));
 		return found;
 	}
 
@@ -268,13 +307,15 @@ var Creature = function(x, y, team) {
 		board = leBoard;
 		board.placeEntity(this.x, this.y, this);
 	}
-	
+
 	this.reset = function() {
 		this.rank = 0;
 		this.x = x;
 		this.y = y;
+		this.ip = 0;
+		this.direction = NORTH;
 	}
-	
+
 	this.step = function() {
 		var instr = this.genome.instructions[this.ip];
 		this.ip = (this.ip + 1) % (this.genome.instructions.length - 1);
@@ -282,7 +323,7 @@ var Creature = function(x, y, team) {
 		var opval = instr[1];
 		switch(opcode) {
 		case NOP: {
-			console.log("NOP");
+			debug.log(GENOME, "NOP");
 			break;
 		}
 		case TURN: {
@@ -291,7 +332,7 @@ var Creature = function(x, y, team) {
 				this.direction -= WEST;
 			if(this.direction < NORTH)
 				this.direction += WEST;
-			console.log("TURN " + opval);
+			debug.log(GENOME, "TURN " + opval);
 			break;
 		}
 		case FORWARD: {
@@ -314,7 +355,7 @@ var Creature = function(x, y, team) {
 				break;
 			}
 			default:
-				console.log("WTF? " + this.direction + " is not a valid direction");
+				debug.error(GENOME, "WTF? " + this.direction + " is not a valid direction");
 			}
 			this._wrapAroundXY();
 			var tenant = board.getEntity(this.x, this.y);
@@ -322,7 +363,7 @@ var Creature = function(x, y, team) {
 				this.rank += 1;
 			} 
 			board.placeEntity(this.x, this.y, this);
-			console.log("FORWARD");
+			debug.log(GENOME, "FORWARD");
 			break;
 		}
 		case BRANCH_IF_ENEMY: {
@@ -341,11 +382,11 @@ var Creature = function(x, y, team) {
 			break;
 		}
 		case BRANCH: 
-			console.log("BRANCH");
+			debug.log(GENOME, "BRANCH");
 			this.ip = opval;
 			break;
 		default:
-			console.log("Unsupported instruction " + opcode);
+			debug.warning(GENOME, "Unsupported instruction " + opcode);
 
 		}
 
@@ -367,7 +408,7 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 
 	var board = createRandomBoard(foodCount, maxX, maxY);
 	var creatures = new Array();
-	
+
 	var createRandomCreature = function() {
 		var x = Math.floor(Math.random() * maxX);
 		var y = Math.floor(Math.random() * maxY);
@@ -380,16 +421,16 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 			creatures[i] = createRandomCreature(b);
 		}
 	}
-	
+
 	var simulateAndRankOneGeneration = function(stepsPerGeneration) {
-		
+
 		for(var i = 0; i < creatureCount; i++) {
 			var b = board.clone();
 			var c = creatures[i];
-			
+
 			c.reset();
 			c.placeOnBoard(b);
-			
+
 			for(var step = 0; step < stepsPerGeneration; step++) {
 				c.step();
 			}
@@ -399,10 +440,10 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 	var nextGeneration = function() {
 		creatures.sort(function(a, b) { return b.rank - a.rank; });
 		var sz = Math.floor(creatureCount / 2)
-		creatures = creatures.slice(1, sz);
+		creatures = creatures.slice(0, sz);
 		fillWithRandomCreatures();
 	}
-	
+
 	var getCreaturesByRank = function() {
 		var creatureCount = creatures.length;
 		var ranked = new Array();
@@ -414,7 +455,7 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 	}
 
 	fillWithRandomCreatures();
-	
+
 	return {
 		getCreaturesByRank: getCreaturesByRank,
 		simulateAndRankOneGeneration: simulateAndRankOneGeneration,
@@ -422,15 +463,20 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 	}
 }
 
-var s = new Simulator(300, 100, 100, 100);
+var isNodeJS = (typeof window === 'undefined');
 
-var creaturePerformance = new Array(); 
-var MAX_GENERATIONS = 2; //00;
-for(var g = 0; g < MAX_GENERATIONS; g++) {
-	s.simulateAndRankOneGeneration(100);
-	s.nextGeneration();
+if (isNodeJS)
+{
+	//debug.watch(GENOME);
+
+	var s = new Simulator(300, 100, 100, 100);
+
+	var MAX_GENERATIONS = 200; //00;
+	for(var g = 0; g < MAX_GENERATIONS; g++) {
+		s.simulateAndRankOneGeneration(100);
+		var ranked = s.getCreaturesByRank();
+		console.log(ranked.slice(0, 10).map(function(a) { return a.rank; }));
+		s.nextGeneration();
+	}
+
 }
-//console.log(creaturePerformance);
-var ranked = s.getCreaturesByRank();
-
-console.log(ranked.slice(1, 10).map(function(a) { return a.rank; }));
