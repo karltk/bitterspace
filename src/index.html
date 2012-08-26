@@ -18,6 +18,12 @@
 			{
 				margin-top: 60px;
 			}
+			
+			#brand
+			{
+				margin-left: 10px;
+				font-size: 20px;
+			}
 		</style>
 		<script type="text/javascript" src="jquery.js"></script>
 		<script type="text/javascript">
@@ -171,17 +177,19 @@
 		
 		<div class="navbar navbar-inverse navbar-fixed-top">
 			<div class="navbar-inner">
+				<a id="brand" class="brand" href="#">BitterSpace</a>
 				<div class="container">
+					
 					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</a>
-					<a class="brand" href="#">Bitter space</a>
+					
 					<div class="nav-collapse collapse">
 						<ul class="nav">
 							<li class="active"><a href="#">Canvas</a></li>
-							<li><a href="#simuation">Simulation Settings</a></li>
+							<li><a href="#simulation">Simulation Settings</a></li>
 							<li><a href="#mutation">Mutation Settings</a></li>
 						</ul>
 					</div>
@@ -201,7 +209,7 @@
 			
 			<br />
 			<form class="form-horizontal">
-				<legend>Simulation Settings</legend>
+				<legend id="simulation">Simulation Settings</legend>
 				
 				<div class="control-group">
 					<label class="control-label" for="generations">Generations</label>
