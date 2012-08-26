@@ -27,7 +27,7 @@
 
 				var canvas = document.getElementById('board');
 
-				var simulator = new Simulator(50, 30, 100, 30, 20, config);
+				var simulator = new Simulator(config.foodCount, config.enemyCount, config.creatureCount, config.boardWidth, config.boardHeight, config);
 				var MAX_GENERATIONS = config.generations;
 				for(var g = 0; g < MAX_GENERATIONS; g++) {
 					simulator.simulateAndRankOneGeneration(config.stepsPerGeneration);
@@ -75,9 +75,14 @@
 				var config = {
 					generations:            parseInt($("#generations").val()),
 					stepsPerGeneration:     parseInt($("#steps").val()),
+					foodCount:              parseInt($("#foodCount").val()),
+					enemyCount:             parseInt($("#enemyCount").val()),
+					creatureCount:          parseInt($("#creatureCount").val()),
+					boardWidth:             parseInt($("#boardWidth").val()),
+					boardHeight:            parseInt($("#boardHeight").val()),
 					newBoardEachGeneration: $("#newboard").is(':checked'),
 				};
-				console.log(config);
+				//console.log(config);
 				return config;
 
 			}
@@ -94,8 +99,7 @@
 		<div id="genome"></div>
 		<div>Rank: <span id="rank"></span></div>
 		<div>Enemy hits: <span id="enemyhits"></span></div>
-		<button onclick="runSimulation(readConfig())">Run simulation</button>
-		<h3>Simulator parameters</h3>
+		<h3>Simulation</h3>
 		<table>
 			<tr>
 				<td><label for="generations">Generations:</label>
@@ -106,9 +110,35 @@
 				<td><label for="steps">Steps per generation:</label>
 				<td><input id="steps" value="20"></input>
 			</tr>
+
+			<tr>
+				<td><label for="foodCount">foodCount</label>
+				<td><input id="foodCount" value="50"></input>
+			</tr>
+
+			<tr>
+				<td><label for="enemyCount">enemyCount</label>
+				<td><input id="enemyCount" value="30"></input>
+			</tr>
+
+			<tr>
+				<td><label for="creatureCount">creatureCount</label>
+				<td><input id="creatureCount" value="100"></input>
+			</tr>
+
+			<tr>
+				<td><label for="boardWidth">boardWidth</label>
+				<td><input id="boardWidth" value="30"></input>
+			</tr>
+
+			<tr>
+				<td><label for="boardHeight">boardHeight per generation:</label>
+				<td><input id="boardHeight" value="20"></input>
+			</tr>
 		</table>
 
 		<input id="newboard" type="checkbox"></input>
-		<label for="newboard">New board per generation</label>
+		<label for="newboard">New board per generation</label><br>
+		<button onclick="runSimulation(readConfig())">Run simulation</button>
 	</body>
 </html>
