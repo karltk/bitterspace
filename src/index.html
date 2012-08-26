@@ -20,10 +20,10 @@
 				
 				var canvas = document.getElementById('board');
 
-				var simulator = new Simulator(50, 100, 30, 20);
-				var MAX_GENERATIONS = 20; 
+				var simulator = new Simulator(50, 30, 100, 30, 20);
+				var MAX_GENERATIONS = 100; 
 				for(var g = 0; g < MAX_GENERATIONS; g++) {
-					simulator.simulateAndRankOneGeneration(100);
+					simulator.simulateAndRankOneGeneration(200);
 				}
 				var ranked = simulator.getCreaturesByRank()
 				var board = simulator.getBoard();

@@ -81,7 +81,7 @@ var debug = function() {
 
 
 var Genome = function() {
-	this.maxInstrCount = 5;
+	this.maxInstrCount = 8;
 	this.instructions = new Array();
 
 
@@ -433,7 +433,8 @@ var Creature = function(x, y, team) {
 			break;
 		}
 		case FORWARD: {
-			board.placeEntity(this.x, this.y, null);
+			var oldX = this.x;
+			var oldY = this.y;
 			switch(this.direction) {
 			case WEST: { 
 				this.x -= 1;
@@ -458,12 +459,17 @@ var Creature = function(x, y, team) {
 			var tenant = board.getEntity(this.x, this.y);
 			if(tenant && tenant.type === "food") {
 				this.rank += 1;
-			} 
-			board.placeEntity(this.x, this.y, this);
+				board.placeEntity(oldX, oldY, null);
+				board.placeEntity(this.x, this.y, this);
+			} else if(tenant && tenant.type === "creature" && tenant.team != this.team) {
+				this.rank = 0;
+				this.x = oldX;
+				this.y = oldY;
+			}
 			break;
 		}
 		case BRANCH_IF_ENEMY: {
-			if(this._lookFor(function(type, team) { return type == "creature" && team == this.team }, "BRANCH_IF_ENEMY"))
+			if(this._lookFor(function(type, team) { return type == "creature" && team != this.team }, "BRANCH_IF_ENEMY"))
 				this.ip = opval;
 			break;
 		}
@@ -488,9 +494,9 @@ var Creature = function(x, y, team) {
 	}
 }
 
-var Simulator = function(foodCount, creatureCount, maxX, maxY) {
+var Simulator = function(foodCount, enemyCount, creatureCount, maxX, maxY) {
 
-	var createRandomBoard = function(foodCount, maxX, maxY) {
+	var createRandomBoard = function() {
 		var b = new Board(maxX, maxY);
 		for(var i = 0; i < foodCount; i++) {
 			var x = Math.floor(Math.random() * maxX);
@@ -498,11 +504,22 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 
 			new Food(x, y, b);
 		}
+		
+		for(var i = 0; i < enemyCount; i++) {
+			var x = Math.floor(Math.random() * maxX);
+			var y = Math.floor(Math.random() * maxY);
+
+			var c = new Creature(x, y);
+			c.placeOnBoard(b);
+			c.team = 1;
+		}
+		
 		return b;
 	}
 
-	var board = createRandomBoard(foodCount, maxX, maxY);
 	var creatures = new Array();
+	var enemies = new Array();
+	var board = createRandomBoard();
 
 	var getBoard = function() {
 		return board.clone();
@@ -557,7 +574,7 @@ var Simulator = function(foodCount, creatureCount, maxX, maxY) {
 		for(var i = 0; i < creatureCount; i++) {
 			var b = board.clone();
 			var c = creatures[i];
-
+			
 			c.reset();
 			c.placeOnBoard(b);
 
@@ -590,7 +607,7 @@ if (isNodeJS)
 {
 	//debug.watch(GENOME);
 
-	var s = new Simulator(300, 100, 100, 100);
+	var s = new Simulator(300, 100, 100, 100, 100);
 
 	var MAX_GENERATIONS = 200; //00;
 	for(var g = 0; g < MAX_GENERATIONS; g++) {
