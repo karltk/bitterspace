@@ -15,16 +15,24 @@
 		</style>
 		<script type="text/javascript" src="jquery.js"></script>
 		<script type="text/javascript">
-		
-			$(document).ready(function() {
-				
+			var updateFunction;
+
+			function runSimulation(config)
+			{
+				if (updateFunction)
+				{
+					clearInterval(updateFunction);
+					updateFunction = null;
+				}
+
 				var canvas = document.getElementById('board');
 
 				var simulator = new Simulator(50, 30, 100, 30, 20);
-				var MAX_GENERATIONS = 100; 
+				var MAX_GENERATIONS = config.generations;
 				for(var g = 0; g < MAX_GENERATIONS; g++) {
-					simulator.simulateAndRankOneGeneration(200);
+					simulator.simulateAndRankOneGeneration(config.steps_per_generation);
 				}
+
 				var ranked = simulator.getCreaturesByRank()
 				var board = simulator.getBoard();
 				var creature = ranked[0];
@@ -48,7 +56,7 @@
 
 				var painter = new Painter(canvas, board);
 				
-				setInterval(function()
+				updateFunction = setInterval(function()
 					{
 						$('#genome li:eq('+creature.ip+')').css("background", "");
 						creature.step();
@@ -59,7 +67,22 @@
 				);
 
 				painter.paint();
-				
+			}
+
+			function readConfig()
+			{
+				var config = {
+					generations:          parseInt($("#generations").val()),
+					steps_per_generation: parseInt($("#steps").val()),
+				};
+				console.log(config);
+				return config;
+
+			}
+
+			$(document).ready(function()
+			{
+				runSimulation(readConfig());
 			});
 		</script>
 	</head>
@@ -67,6 +90,16 @@
 		<canvas id="board">
 		</canvas>
 		<div id="genome"></div>
-		<div id="rank"></div>
+		<div>Rank: <span id="rank"></span></div>
+		<button onclick="runSimulation(readConfig())">Run simulation</button>
+		<h3>Simulator parameters:</h3>
+		<form>
+			<label for="generations">Generations:</label>
+			<input id="generations" value="10"></input>
+			<br>
+
+			<label for="steps">Steps per generation:</label>
+			<input id="steps" value="20"></input>
+		</form>
 	</body>
 </html>
