@@ -53,6 +53,7 @@
 						$('#genome li:eq('+creature.ip+')').css("background", "");
 						creature.step();
 						$('#genome li:eq('+creature.ip+')').css("background", "#aaa");
+						$('#rank').text(creature.rank);
 						painter.paint();
 					}, 100
 				);
@@ -66,5 +67,6 @@
 		<canvas id="board">
 		</canvas>
 		<div id="genome"></div>
+		<div id="rank"></div>
 	</body>
 </html>
