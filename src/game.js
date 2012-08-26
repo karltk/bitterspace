@@ -46,6 +46,45 @@ var prepareProbabilities = function() {
 
 var CUMULATIVE_PROBABILITIES = prepareProbabilities();
 
+// Logger
+var GENERAL = 0;
+var GENOME  = 1;
+var debug = function() {
+	var watching = [ GENERAL ];
+	var red   = '\033[31m';
+	var blue  = '\033[34m';
+	var reset = '\033[0m';
+
+	var watchingDomain = function(domain)
+	{
+		return domain in watching;
+	}
+
+	var log = function(domain, text) {
+		if (watchingDomain(domain))
+			console.log(text);
+	}
+	var warn = function(domain, text) {
+		if (watchingDomain(domain))
+			console.log(blue+text+reset);
+	}
+	var error = function(domain, text) {
+		if (watchingDomain(domain))
+			console.log(red+text+reset);
+	}
+	var watch = function(domain)
+	{
+		watching.push(domain);
+	}
+
+	return {
+		log:   log,
+		warn:  warn,
+		error: error,
+		watch: watch,
+	};
+}();
+
 
 var Genome = function() {
 	this.maxInstrCount = 5;
@@ -249,7 +288,7 @@ var Creature = function(x, y, board, team) {
 		var found = false;
 		if(spotted && check(spotted.type, spotted.team))
 			found = true;
-		console.log(log + " " + (found ? "taken" : "not taken"));
+		debug.log(GENOME, log + " " + (found ? "taken" : "not taken"));
 		return found;
 	}
 
@@ -272,7 +311,7 @@ var Creature = function(x, y, board, team) {
 		var opval = instr[1];
 		switch(opcode) {
 		case NOP: {
-			console.log("NOP");
+			debug.log(GENOME, "NOP");
 			break;
 		}
 		case TURN: {
@@ -281,7 +320,7 @@ var Creature = function(x, y, board, team) {
 				this.direction -= WEST;
 			if(this.direction < NORTH)
 				this.direction += WEST;
-			console.log("TURN " + opval);
+			debug.log(GENOME, "TURN " + opval);
 			break;
 		}
 		case FORWARD: {
@@ -304,7 +343,7 @@ var Creature = function(x, y, board, team) {
 				break;
 			}
 			default:
-				console.log("WTF? " + this.direction + " is not a valid direction");
+				debug.error(GENOME, "WTF? " + this.direction + " is not a valid direction");
 			}
 			this._wrapAroundXY();
 			var tenant = board.getEntity(this.x, this.y);
@@ -312,7 +351,7 @@ var Creature = function(x, y, board, team) {
 				this.rank += 1;
 			} 
 			board.placeEntity(this.x, this.y, this);
-			console.log("FORWARD");
+			debug.log(GENOME, "FORWARD");
 			break;
 		}
 		case BRANCH_IF_ENEMY: {
@@ -331,11 +370,11 @@ var Creature = function(x, y, board, team) {
 			break;
 		}
 		case BRANCH: 
-			console.log("BRANCH");
+			debug.log(GENOME, "BRANCH");
 			this.ip = opval;
 			break;
 		default:
-			console.log("Unsupported instruction " + opcode);
+			debug.warning(GENOME, "Unsupported instruction " + opcode);
 
 		}
 
@@ -393,14 +432,21 @@ var Simulator = function(foodCount, maxX, maxY) {
 	}
 }
 
-var s = new Simulator(300, 100, 100);
+var isNodeJS = (typeof window === 'undefined');
 
-var creaturePerformance = new Array(); 
-for(var i = 0; i < 5; i++) {
-	var singleRun = s.simulateAndRankOneGeneration(1, 100);
-	creaturePerformance[i] = singleRun[0];
+if (isNodeJS)
+{
+	debug.watch(GENOME);
+
+	var s = new Simulator(300, 100, 100);
+
+	var creaturePerformance = new Array(); 
+	for(var i = 0; i < 5; i++) {
+		var singleRun = s.simulateAndRankOneGeneration(1, 100);
+		creaturePerformance[i] = singleRun[0];
+	}
+	//console.log(creaturePerformance);
+	var ranked = s.sortByRank(creaturePerformance);
+
+	console.log(ranked.map(function(a) { return a.rank; }));
 }
-//console.log(creaturePerformance);
-var ranked = s.sortByRank(creaturePerformance);
-
-console.log(ranked.map(function(a) { return a.rank; }));
