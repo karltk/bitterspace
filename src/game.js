@@ -195,8 +195,13 @@ var Mutator = function(genome) {
 	}
 	
 	this.insertOpOnLocation = function(instructions, loc) {
-		var newinstr = this.genome.generateRandomInstruction(instructions.length - 1); // Change to random
+		var newinstr = this.genome.generateRandomInstruction(instructions.length - 1);
 		instructions.splice(loc,0,newinstr);
+		
+		// Update pointers so that branching is unaffected:
+		for (var i = 0; i < instructions.length; i++)
+			if ((i != loc) && (instructions[i][0] > TURN) && (instructions[i][1] >= loc))
+				instructions[i][1]++;
 	}
 
 	this.deleteOp = function(instructions) {
@@ -212,10 +217,11 @@ var Mutator = function(genome) {
 	
 	this.deleteOpOnLocation = function(instructions, loc) {
 		instructions.splice(loc, 1);
-				
+		
+		// Update pointers so that branching is unaffected:
 		for (var i = 0; i < instructions.length; i++)
-			if (instructions[i][0] > TURN)
-				instructions[i][1] = Math.min(instructions[i][1], instructions.length - 1);
+			if ((instructions[i][0] > TURN) && (instructions[i][1] > loc))
+				instructions[i][1]--;
 	}
 	
 	this.mutateOpcodeOnLocation = function(instructions, loc) {
