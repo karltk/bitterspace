@@ -54,6 +54,7 @@
 				
 				function onNew(msg) {
 					replaceCreatureWithNewGenome(msg.genome);
+					$("#generation").text(msg.generation);
 					timeUntilNew = stepsUntilRespawn;
 					shouldAskForNew = true;
 				}
@@ -163,6 +164,7 @@
 		<div>Respawn counter: <span id="respawnCounter"></span></div>
 		<div>Step counter: <span id="stepcounter"></span></div>
 		<div>Rank: <span id="rank"></span></div>
+		<div>Generation: <span id="generation"></span></div>
 		<div>Enemy hits: <span id="enemyhits"></span></div>
 		<h3>Simulation</h3>
 		<table>

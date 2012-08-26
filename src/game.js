@@ -389,7 +389,7 @@ var Creature = function(x, y, enemy) {
 	var board = null;
 
 	this.asJson = function() {
-		return { genome: this.genome.asJson() };
+		return { genome: this.genome.asJson(), generation: this.generation };
 	}
 	
 	this.clone = function() {
@@ -398,7 +398,7 @@ var Creature = function(x, y, enemy) {
 		clone.y = this.y;
 		clone.category = this.category;
 		clone.direction = this.direction;
-		clone.generation = this.generation;
+		clone.generation = this.generation + 1;
 		clone.genome = this.genome.clone();
 		clone.ip = this.ip;
 		clone.rank = this.rank;
