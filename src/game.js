@@ -484,14 +484,14 @@ var Creature = function(x, y, team) {
 			var tenant = board.getEntity(this.x, this.y);
 			if(tenant && tenant.type === "food") {
 				this.rank += 1;
-				board.placeEntity(oldX, oldY, null);
-				board.placeEntity(this.x, this.y, this);
 			} else if(tenant && tenant.type === "creature" && tenant.team != this.team) {
 				this.rank = 0;
 				this.enemyhits++;
 				this.x = oldX;
 				this.y = oldY;
 			}
+			board.placeEntity(oldX, oldY, null);
+			board.placeEntity(this.x, this.y, this);
 			break;
 		}
 		case BRANCH_IF_ENEMY: {
@@ -681,7 +681,6 @@ if (isNodeJS)
 			
 			var ranked = s.getCreaturesByRank();
 			self.postMessage("New creature evolved")
-			self.postMessage("" + ranked);
 			self.postMessage({cmd:"new", result: ranked[0].asJson()});
 		}
 	});

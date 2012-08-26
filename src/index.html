@@ -54,7 +54,6 @@
 				});
 				
 				function onNew(msg) {
-					console.log("onNew : ", msg);
 					replaceCreatureWithNewGenome(msg.genome);
 					timeUntilNew = TIMEOUT;
 					shouldAskForNew = true;
@@ -88,7 +87,6 @@
 				creature.placeOnBoard(board);
 
 				function displayGenome(genome) {
-					console.log("CC", genome);
 					$("#genome").html(genomeToHtml(genome));
 				}
 				
