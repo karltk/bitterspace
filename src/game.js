@@ -16,20 +16,13 @@ var INSTRUCTION_PROBABILITIES = [
                                  [ BRANCH_IF_FRIEND, 5],
                                  [ BRANCH_IF_FOOD, 5 ],
                                  [ BRANCH, 5]
-                                 ];
+                                ];
 
-//FIXME prettify
-MUTATION_OPCODE = 1;
-MUTATION_OPVAL = 2;
-MUTATION_INSERT_OP = 3;
-MUTATION_DELTE_OP = 4;
-
-var MUTATION_PROBABILITIES = [
-                              [ MUTATION_OPCODE, 35 ],
-                              [ MUTATION_OPVAL, 35]
-                              [ MUTATION_INSERT_OP, 15 ],
-                              [ MUTATION_DELTE_OP, 15]
-                              ];
+// Mutation probabilities
+PROB_MUTATION_OPVAL      = 35; // Mutate opval
+PROB_MUTATION_OPCODE     = 35; // Mutate opcode (try to keep opval)
+PROB_MUTATION_INSERT_OP  = 20; // Insert [ opcode, opval ]
+PROB_MUTATION_DELETE_OP  = 10; // Delete op
 
 var prepareProbabilities = function() {
 	var ls = new Array();
@@ -154,15 +147,18 @@ var Mutator = function(genome) {
 		var chance = Math.floor(Math.random() * 100);
 				
 		// FIXME: use probabilities above..
-		if (chance < 35) {
+		if (chance < PROB_MUTATION_OPVAL) {
 			var loc = this.mutateOpval(instructions);
 			debug.log(MUTATION, "Mutated Opval at location: " + loc);
-		} else if (chance < 70) {
+			
+		} else if (chance < PROB_MUTATION_OPVAL + PROB_MUTATION_OPCODE) {
 			var loc = this.mutateOpcode(instructions);
 			debug.log(MUTATION, "Mutated Opcode at location: " + loc);
-		} else if (chance < 90) {
+			
+		} else if (chance < PROB_MUTATION_OPVAL + PROB_MUTATION_OPCODE + PROB_MUTATION_INSERT_OP) {
 			var loc = this.insertOp(instructions);
 			debug.log(MUTATION, "Inserted instruction at location: " + loc);
+			
 		} else {
 			var loc = this.deleteOp(instructions);
 			debug.log(MUTATION, "Deleted instruction at location: " + loc);
@@ -216,9 +212,7 @@ var Mutator = function(genome) {
 	
 	this.deleteOpOnLocation = function(instructions, loc) {
 		instructions.splice(loc, 1);
-		
-		// FIXME? deletion skews instruction pointers for branching.
-		
+				
 		for (var i = 0; i < instructions.length; i++)
 			if (instructions[i][0] > TURN)
 				instructions[i][1] = Math.min(instructions[i][1], instructions.length - 1);
