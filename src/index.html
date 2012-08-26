@@ -126,7 +126,6 @@
 						if(shouldAskForNew) {
 							timeUntilNew--;
 							var pct = (stepsUntilRespawn - timeUntilNew) / stepsUntilRespawn * 100 + "%";
-							console.log(pct);
 							$('#respawnCounter').css("width", pct);
 							if(timeUntilNew <= 0)  { 
 								askForNew();
