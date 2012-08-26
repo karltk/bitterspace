@@ -36,6 +36,7 @@
 				var ranked = simulator.getCreaturesByRank();
 				var board = simulator.getBoard();
 				var creature = ranked[0];
+				$("#simrank").text(creature.rank);
 				creature.reset();
 				creature.placeOnBoard(board);
 
@@ -99,7 +100,7 @@
 		</canvas>
 		<div id="genome"></div>
 		<div>Step counter: <span id="stepcounter"></span></div>
-		<div>Rank: <span id="rank"></span></div>
+		<div>Rank: <span id="rank"></span> (<span id="simrank"></span>)</div>
 		<div>Enemy hits: <span id="enemyhits"></span></div>
 		<h3>Simulation</h3>
 		<table>
