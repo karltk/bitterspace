@@ -84,6 +84,14 @@ var Genome = function() {
 	this.maxInstrCount = 8;
 	this.instructions = new Array();
 
+	this.asJson = function() {
+		return this.instructions;
+	}
+	
+	this.fromJson = function(newInstructions) {
+		this.instructions = newInstructions;
+		this.maxInstrCount = newInstructions.length;
+	}
 
 	this.clone = function() {
 		var clone = new Genome();
@@ -371,6 +379,10 @@ var Creature = function(x, y, team) {
 	this.rank = 0;
 	var board = null;
 
+	this.asJson = function() {
+		return { genome: this.genome.asJson() };
+	}
+	
 	this.clone = function() {
 		var clone = new Creature(x, y);
 		clone.x = this.x;
@@ -601,13 +613,14 @@ var Simulator = function(foodCount, enemyCount, creatureCount, maxX, maxY) {
 	}
 
 	return {
+		createRandomCreature: createRandomCreature,
 		getCreaturesByRank: getCreaturesByRank,
 		simulateAndRankOneGeneration: simulateAndRankOneGeneration,
 		getBoard: getBoard
 	}
 }
 
-var isNodeJS = (typeof window === 'undefined');
+var isNodeJS = (typeof window === 'undefined') && (typeof module !== 'undefined');
 
 if (isNodeJS)
 {
@@ -615,11 +628,37 @@ if (isNodeJS)
 
 	var s = new Simulator(300, 100, 100, 100, 100);
 
-	var MAX_GENERATIONS = 200; //00;
+	var MAX_GENERATIONS = 200;
 	for(var g = 0; g < MAX_GENERATIONS; g++) {
 		s.simulateAndRankOneGeneration(100);
 		var ranked = s.getCreaturesByRank();
-		console.log(ranked.slice(0, 10).map(function(a) { return a.rank; }));
+		console.log("" + ranked[0].genome.instructions);
+		//console.log(ranked.slice(0, 10).map(function(a) { return a.rank; }));
 	}
+
+	console.log(ranked[0].asJson());
+	
+} else {
+
+	var s = null;
+	
+	self.addEventListener("message", function(e) {
+		self.postMessage("worker producing new creature");
+		
+		var params = e.data;
+
+		if(!s) {
+			self.postMessage("initializing simulator");
+			s = new Simulator(params.food, params.enemies, 100, params.maxX, params.maxY);
+		}
+		
+		for(var g = 0; g < 10; g++) {
+			s.simulateAndRankOneGeneration(100);
+		}
+		
+		var ranked = s.getCreaturesByRank();
+		self.postMessage("" + ranked[0].genome.instructions)
+		self.postMessage(ranked[0].asJson());
+	});
 
 }

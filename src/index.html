@@ -18,21 +18,46 @@
 		
 			$(document).ready(function() {
 				
-				var canvas = document.getElementById('board');
-
-				var simulator = new Simulator(50, 30, 100, 30, 20);
-				var MAX_GENERATIONS = 100; 
-				for(var g = 0; g < MAX_GENERATIONS; g++) {
-					simulator.simulateAndRankOneGeneration(200);
-				}
-				var ranked = simulator.getCreaturesByRank()
-				var board = simulator.getBoard();
-				var creature = ranked[0];
-				creature.reset();
-				creature.placeOnBoard(board);
-
-				$("#genome").html(genomeToHtml(creature.genome.instructions));
+				var MAXX = 30;
+				var MAXY = 20;
+				var FOOD = 30;
+				var ENEMIES = 50
+				var TIMEOUT = 30;
 				
+				var canvas = document.getElementById('board');
+				var sim = new Simulator(FOOD, ENEMIES, 0, MAXX, MAXY);
+				var board = sim.getBoard();
+				var creature = new Creature(0, 0);
+				var worker = new Worker("game.js");
+				var timeUntilNew = 0;
+				var shouldAskForNew = true;
+				
+				worker.addEventListener('message', function(e) {
+  					if(e.data.genome) {
+  						var c = sim.createRandomCreature();
+						c.genome.fromJson(e.data.genome);
+						replaceCreature(c);
+						timeUntilNew = TIMEOUT;
+						shouldAskForNew = true;
+					} else {
+						console.log(e.data);
+					}  					
+				}, false);
+				
+				function askForNew() {
+					console.log("Asking for new creature");
+					worker.postMessage({maxX: MAXX, maxY: MAXY, food: FOOD, enemies: ENEMIES});
+					shouldAskForNew = false;
+				}
+
+				function replaceCreature(c) {
+					board.placeEntity(creature.x, creature.y, null);
+					creature = c;
+					creature.reset();
+					creature.placeOnBoard(board);
+					$("#genome").html(genomeToHtml(creature.genome.instructions));
+				}
+						
 				function genomeToHtml(instructions)
 				{
 					var html = '<ol start=0>';
@@ -48,6 +73,8 @@
 
 				var painter = new Painter(canvas, board);
 				
+				replaceCreature(creature);
+				
 				setInterval(function()
 					{
 						$('#genome li:eq('+creature.ip+')').css("background", "");
@@ -55,12 +82,20 @@
 						$('#genome li:eq('+creature.ip+')').css("background", "#aaa");
 						$('#rank').text(creature.rank);
 						painter.paint();
+						if(shouldAskForNew) {
+							timeUntilNew--;
+							$('#timeout').text(TIMEOUT - timeUntilNew + "/" + TIMEOUT);
+							if(timeUntilNew <= 0)  { 
+								askForNew();
+								timeUntilNew = TIMEOUT;
+							}	
+						}
 					}, 100
 				);
 
 				painter.paint();
-				
 			});
+
 		</script>
 	</head>
 	<body>
@@ -68,5 +103,6 @@
 		</canvas>
 		<div id="genome"></div>
 		<div id="rank"></div>
+		<div id="timeout"></div>
 	</body>
 </html>
