@@ -61,6 +61,23 @@
 		
 		<script type="text/javascript">
 			var updateFunction;
+			
+			var simulatorConfigList = {
+				generations: 			{conftype: "number", def: "10"},
+				stepsPerGeneration: 	{conftype: "number", def: "20"},
+				stepsUntilRespawn: 		{conftype: "number", def: "35"},
+				foodCount: 				{conftype: "number", def: "50"},
+				enemyCount: 			{conftype: "number", def: "30"},
+				creatureCount: 			{conftype: "number", def: "100"},
+				boardWidth: 			{conftype: "number", def: "30"},
+				boardHeight: 			{conftype: "number", def: "20"},
+				newBoardEachGeneration: {conftype: "checkbox", def: false}
+			};
+			
+			var mutationConfigList = {
+				
+			};
+			
 
 			function runSimulation(config)
 			{
@@ -177,18 +194,6 @@
 
 				painter.paint();
 			}
-
-			var simulatorConfigList = {
-				generations: 			{conftype: "number", def: "10"},
-				stepsPerGeneration: 	{conftype: "number", def: "20"},
-				stepsUntilRespawn: 		{conftype: "number", def: "35"},
-				foodCount: 				{conftype: "number", def: "50"},
-				enemyCount: 			{conftype: "number", def: "30"},
-				creatureCount: 			{conftype: "number", def: "100"},
-				boardWidth: 			{conftype: "number", def: "30"},
-				boardHeight: 			{conftype: "number", def: "20"},
-				newBoardEachGeneration: {conftype: "checkbox", def: false}
-			};
 
 			function readConfig()
 			{
