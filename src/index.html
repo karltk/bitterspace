@@ -200,14 +200,11 @@
 				var config = {};
 				
 				for (conf in simulatorConfigList) {
-					console.dir(conf);
-					
 					var conftype = simulatorConfigList[conf].conftype;
 					if (conftype == "number")
 						config[conf] = parseInt($("#" + conf).val());
 					else if (conftype == "checkbox")
 						config[conf] = $("#newboard").is(':checked');
-						
 				}
 				
 				return config;
