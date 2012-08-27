@@ -7,14 +7,25 @@
 		<script type='text/javascript' src='game.js'></script>
 		<script type='text/javascript' src='painter.js'></script>
 		<script type='text/javascript' src='genome-painter.js'></script>
+		
 		<link href="css/bootstrap.css" rel="stylesheet">
 		<link href="css/custom.css" rel="stylesheet">
 		<style type='text/css'>
-			#board, #genome, #history
+			#history
 			{
 				/*border: 1px solid black;*/
 				display: inline-block;
 			}
+			#genome {
+				display: inline-block;
+				font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+				font-size: 12px;
+			}
+			#board {
+				display: inline-block;
+				margin-right: 5px;
+			}
+			
 			#titletag
 			{
 				margin-top: 60px;
@@ -26,7 +37,28 @@
 				font-size: 20px;
 			}
 		</style>
-		<script type="text/javascript" src="jquery.js"></script>
+		<script type="text/javascript" src="lib/jquery.js"></script>
+		<script type="text/javascript" src="lib/handlebars.js"></script>
+		
+		<script id="number-template" type="text/x-handlebars-template">
+			<div class="control-group">
+				<label class="control-label" for="{{id}}">{{description}}</label>
+				<div class="controls">
+					<input type="text" id="{{id}}" value="{{value}}"></input>
+				</div>
+			</div>
+		</script>
+		
+		<script id="checkbox-template" type="text/x-handlebards-template">
+			<div class="control-group">
+			    <div class="controls">
+					<label class="checkbox">
+						<input id="{{id}}" type="checkbox"> {{description}}
+					</label>
+				</div>
+			</div>
+		</script>
+		
 		<script type="text/javascript">
 			var updateFunction;
 
@@ -146,26 +178,81 @@
 				painter.paint();
 			}
 
+			var simulatorConfigList = {
+				generations: 			{conftype: "number", def: "10"},
+				stepsPerGeneration: 	{conftype: "number", def: "20"},
+				stepsUntilRespawn: 		{conftype: "number", def: "35"},
+				foodCount: 				{conftype: "number", def: "50"},
+				enemyCount: 			{conftype: "number", def: "30"},
+				creatureCount: 			{conftype: "number", def: "100"},
+				boardWidth: 			{conftype: "number", def: "30"},
+				boardHeight: 			{conftype: "number", def: "20"},
+				newBoardEachGeneration: {conftype: "checkbox", def: false}
+			};
+
 			function readConfig()
 			{
-				var config = {
-					generations:            parseInt($("#generations").val()),
-					stepsPerGeneration:     parseInt($("#steps").val()),
-					stepsUntilRespawn:      parseInt($("#stepsUntilRespawn").val()),
-					foodCount:              parseInt($("#foodCount").val()),
-					enemyCount:             parseInt($("#enemyCount").val()),
-					creatureCount:          parseInt($("#creatureCount").val()),
-					boardWidth:             parseInt($("#boardWidth").val()),
-					boardHeight:            parseInt($("#boardHeight").val()),
-					newBoardEachGeneration: $("#newboard").is(':checked'),
-				};
-				//console.log(config);
+				var config = {};
+				
+				for (conf in simulatorConfigList) {
+					console.dir(conf);
+					
+					var conftype = simulatorConfigList[conf].conftype;
+					if (conftype == "number")
+						config[conf] = parseInt($("#" + conf).val());
+					else if (conftype == "checkbox")
+						config[conf] = $("#newboard").is(':checked');
+						
+				}
+				
 				return config;
-
+			}
+			
+			function camelToHuman(str) {
+				var out = str.replace(/^\s*/, "");
+				out = out.replace(/^[a-z]|[^\s][A-Z]/g, function(str, offset) {
+					if (offset == 0) {
+						return(str.toUpperCase());
+					} else {
+						return(str.substr(0,1) + " " + str.substr(1).toUpperCase());
+					}
+				});
+				return(out);
+			}
+			
+			function buildConfigHTML()
+			{
+				var numsource   = $("#number-template").html();
+				var checksource = $("#checkbox-template").html();
+				
+				var numtemplate = Handlebars.compile(numsource);
+				var checktemplate = Handlebars.compile(checksource);
+				
+				var configData = readConfig();
+				
+				for (conf in simulatorConfigList) {
+					var context = {
+						id: conf,
+						description: camelToHuman(conf),
+						value: simulatorConfigList[conf].def
+					}
+					
+					console.dir(simulatorConfigList[conf]);
+					if (simulatorConfigList[conf].conftype == "number")
+						$("#form-simulation").append(numtemplate(context));
+					
+					if (simulatorConfigList[conf].conftype == "checkbox")
+						$("#form-simulation").append(checktemplate(context));
+					
+					//var html = template(context);
+				}
+				
+				//console.dir(template);
 			}
 
 			$(document).ready(function()
 			{
+				buildConfigHTML();
 				runSimulation(readConfig());
 			});
 		</script>
@@ -211,77 +298,21 @@
 			<div>Enemy hits: <span id="enemyhits"></span></div>
 			
 			<br />
-			<form class="form-horizontal">
-				<legend id="simulation">Simulation Settings</legend>
-				
-				<div class="control-group">
-					<label class="control-label" for="generations">Generations</label>
-					<div class="controls">
-						<input type="text" id="generations" value="10"></input>
-					</div>
-				</div>
-				
-				<div class="control-group">
-					<label class="control-label" for="steps">Steps per generation</label>
-					<div class="controls">
-						<input type="text" id="steps" value="20"></input>
-					</div>
-				</div>
-				
-				<div class="control-group">
-					<label class="control-label" for="stepsUntilRespawn">Steps until respawn</label>
-					<div class="controls">
-						<input type="text" id="stepsUntilRespawn" value="35"></input>
-					</div>
-				</div>
-				
-				<div class="control-group">
-					<label class="control-label" for="foodCount">foodCount</label>
-					<div class="controls">
-						<input type="text" id="foodCount" value="50"></input>
-					</div>
-				</div>
-				
-				<div class="control-group">
-					<label class="control-label" for="enemyCount">enemyCount</label>
-					<div class="controls">
-						<input type="text" id="enemyCount" value="30"></input>
-					</div>
-				</div>
-				
-				<div class="control-group">
-					<label class="control-label" for="creatureCount">creatureCount</label>
-					<div class="controls">
-						<input type="text" id="creatureCount" value="100"></input>
-					</div>
-				</div>
-				
-				<div class="control-group">
-					<label class="control-label" for="boardWidth">boardWidth</label>
-					<div class="controls">
-						<input type="text" id="boardWidth" value="30"></input>
-					</div>
-				</div>
-				
-				<div class="control-group">
-					<label class="control-label" for="boardHeight">boardHeight</label>
-					<div class="controls">
-						<input type="text" id="boardHeight" value="20"></input>
-					</div>
-				</div>
-				
-				<div class="control-group">
-				    <div class="controls">
-						<label class="checkbox">
-							<input id="newboard" type="checkbox"> New board per generation
-						</label>
+			<div class="row">
+				<div class="span6">
+					<form class="form-horizontal">
+						<legend id="simulation">Simulation Settings</legend>
+						<div id="form-simulation"></div>
 						<button type="button" class="btn btn-primary" onclick="runSimulation(readConfig())">Run simulation</button>
-					</div>
+					</form>
 				</div>
-				
-				<legend>Mutation Settings</legend>
-				
-			</form>
+				<div class="span6">
+					<form class="form-horizontal" id="form-mutation">
+						<legend id="mutation">Mutation Settings</legend>
+						<div id="form-mutation"></div>
+					</form>
+				</div>
+			</div>
 			
 			<br />
 		</div>
