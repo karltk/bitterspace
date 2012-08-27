@@ -96,6 +96,9 @@
 						creatureCount: config.creatureCount || 100,
 						newBoardEachGeneration: config.newBoardEachGeneration || false
 					};
+				
+				console.dir(simulatorConfig);	
+					
 				var simulator = new Simulator(simulatorConfig);
 				var ranked = simulator.getCreaturesByRank();
 				var board = simulator.getBoard();
@@ -204,7 +207,7 @@
 					if (conftype == "number")
 						config[conf] = parseInt($("#" + conf).val());
 					else if (conftype == "checkbox")
-						config[conf] = $("#newboard").is(':checked');
+						config[conf] = $("#" + conf).is(':checked');
 				}
 				
 				return config;
@@ -239,7 +242,6 @@
 						value: simulatorConfigList[conf].def
 					}
 					
-					console.dir(simulatorConfigList[conf]);
 					if (simulatorConfigList[conf].conftype == "number")
 						$("#form-simulation").append(numtemplate(context));
 					

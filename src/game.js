@@ -9,6 +9,7 @@ OPCODE = 0
 OPVAL1 = 1
 OPVAL2 = 2
 
+CATEGORY_UNCONDITIONAL = 0
 CATEGORY_FOOD = 1
 CATEGORY_FRIEND = 2
 CATEGORY_ENEMY = 3
@@ -23,10 +24,14 @@ var INSTRUCTION_PROBABILITIES = [
                                 ];
 
 // Mutation probabilities
-PROB_MUTATION_OPVAL      = 35; // Mutate opval
-PROB_MUTATION_OPCODE     = 35; // Mutate opcode (try to keep opval)
+PROB_MUTATION_OPVAL      = 40; // Mutate opval
+PROB_MUTATION_OPCODE     = 30; // Mutate opcode (try to keep opval)
 PROB_MUTATION_INSERT_OP  = 20; // Insert [ opcode, opval ]
 PROB_MUTATION_DELETE_OP  = 10; // Delete op
+
+PROB_OPVALMUTATION_VAL1  = 30
+PROB_OPVALMUTATION_VAL2  = 70
+
 
 var prepareProbabilities = function() {
 	var ls = new Array();
@@ -122,7 +127,7 @@ var Genome = function() {
 		var opval1 = 0;
 		var opval2 = 0;
 		if(opcode == BRANCH) {
-			opval1 = Math.floor(Math.random() * MAX_OBSERVABLE_ID);
+			opval1 = Math.floor(Math.random() * (MAX_OBSERVABLE_ID + 1));
 			opval2 = Math.floor(Math.random() * maxInstrCount);
 		} else if(opcode == TURN)
 			opval1 = Math.floor(Math.random() * 6 - 3);
@@ -198,8 +203,17 @@ var Mutator = function(genome) {
 		if (opcode == TURN)
 			opval1 = Math.floor(Math.random() * 6 - 3);
 		else if (opcode == BRANCH) {
-			opval1 = instructions[loc][OPVAL1]; // FIXME randomize
-			opval2 = Math.floor(Math.random() * (instructions.length - 1));
+			
+			opval1 = instructions[loc][OPVAL1];
+			opval2 = instructions[loc][OPVAL2];
+			
+			var chance = Math.floor(Math.random() * 100);
+			
+			if (chance < PROB_OPVALMUTATION_VAL1) {
+				opval1 = Math.floor(Math.random() * (MAX_OBSERVABLE_ID + 1));
+			} else {
+				opval2 = this.randomLocation(instructions);
+			}			
 		}
 		
 		instructions[loc][OPVAL1] = opval1;
